@@ -39,44 +39,6 @@
 
 using namespace llvm;
 
-// Helpers --------------------------------------------------------------
-
-static bool isFPOp(const Instruction &irInstr) {
-  Type *irType = irInstr.getType();
-  if (!irType)
-    return false;
-  if (irType->isFloatingPointTy())
-    return true;
-  // check if it is a vector of floating point types
-  if (auto *irVectType = dyn_cast<VectorType>(irType))
-    if (irVectType->getElementType()->isFloatingPointTy())
-      return true;
-  return false;
-}
-
-static std::string nameFPType(Type *irType) {
-  // typical types, add more to extend in future
-  if (irType->isHalfTy())
-    return "fp16";
-  if (irType->isFloatTy())
-    return "fp32";
-  if (irType->isDoubleTy())
-    return "fp64";
-
-  // handle vectors of floating point types
-  FixedVectorType *vecType = dyn_cast<FixedVectorType>(irType);
-  if (vecType) {
-    // get type and number of elements
-    Type *elemType = vecType->getElementType();
-    unsigned numElements = vecType->getNumElements();
-    std::string elemName = nameFPType(elemType);
-    // type value is vec_length_type
-    // e.g. vec_5_fp32
-    return "vec_" + std::to_string(numElements) + "_" + elemName;
-  }
-
-  return "unhandled";
-}
 // Data structs --------------------------------------------------------------
 
 struct FlopMeta {
@@ -94,6 +56,77 @@ struct FuncMeta {
   std::vector<FlopMeta> flops;
   std::vector<int> callsFuncId;
 };
+
+// Helpers --------------------------------------------------------------
+
+// out message helper
+template <typename... rest> static void outMsg(const rest &...messages) {
+  errs() << "ExportGraphPass";
+  (errs() << ... << messages);
+}
+
+// check if an instruction is a floating point operation
+static bool isFlop(Instruction &irInstr) {
+  Type *irType = irInstr.getType();
+  if (!irType) {
+    return false;
+  }
+  if (irType->isFloatingPointTy()) {
+    return true;
+  }
+  // check if it is a vector of floating point types
+  if (auto *irVectType = dyn_cast<VectorType>(irType)) {
+    if (irVectType->getElementType()->isFloatingPointTy()) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// check if instruction is a binary operation
+static bool isBinaryOp(Instruction &irInstr) {
+  BinaryOperator *irBinOp = dyn_cast<BinaryOperator>(&irInstr);
+  if (!irBinOp) {
+    return false;
+  }
+  return true;
+}
+
+// check if an instruction is both a floating point and binary operation
+static bool isBFlop(Instruction &irInstr) {
+  if (isFlop(irInstr) && isBinaryOp(irInstr)) {
+    return true;
+  }
+  return false;
+}
+
+// helper to get text of type name to place into plan JSON
+static std::string nameFPType(Type *irType) {
+  // typical types, add more to extend in future
+  if (irType->isHalfTy()) {
+    return "fp16";
+  }
+  if (irType->isFloatTy()) {
+    return "fp32";
+  }
+  if (irType->isDoubleTy()) {
+    return "fp64";
+  }
+
+  // handle vectors of floating point types
+  FixedVectorType *vecType = dyn_cast<FixedVectorType>(irType);
+  if (vecType) {
+    // get type and number of elements
+    Type *elemType = vecType->getElementType();
+    unsigned numElements = vecType->getNumElements();
+    std::string elemName = nameFPType(elemType);
+    // type value is vec_length_type
+    // e.g. vec_5_fp32
+    return "vec_" + std::to_string(numElements) + "_" + elemName;
+  }
+
+  return "unhandled";
+}
 
 // Main logic --------------------------------------------------------------
 
@@ -124,7 +157,7 @@ assignFlopIds(Module &irModule,
       for (auto &irBlock : irFunc) {
         // instructions
         for (auto &irInstr : irBlock) {
-          if (isFPOp(irInstr)) {
+          if (isBFlop(irInstr)) {
             flopIdMap[&irInstr] = flopId;
           }
           // increment id regardless of it flop instruction so instruction ids
@@ -169,30 +202,20 @@ buildFuncMetas(Module &irModule,
         for (auto &irInstr : irBlock) {
           if (flopIdMap.count(&irInstr)) {
             int flopId = flopIdMap[&irInstr];
-            // BUILD META AND SCOPE LOCATION
-            funcMeta.flops.push_back(
-                {flopId,
-                 blockId,
-                 funcId,
-                 std::string(Instruction::getOpcodeName(irInstr.getOpcode())),
-                 nameFPType(irInstr.getType()),
-                 {}});
 
-            // ADD USES OF THE FLOP
             // get used-by edges, these expect the flop to be the original type,
             // this needs handling
-            for (auto &usedBy : irInstr.operands()) {
-              auto *usedByVal = usedBy.get();
-
-              if (Instruction *usedByInstr = dyn_cast<Instruction>(usedByVal)) {
-                // the flopIdMap defines what we are interested in
-                if (flopIdMap.count(usedByInstr)) {
-                  // get id of user and add to flops
-                  int usedByInstrId = flopIdMap[usedByInstr];
-                  funcMeta.flops.back().users.push_back(usedByInstrId);
-                }
-              }
+            std::vector<int> users;
+            for (auto *userVal : irInstr.users()) {
+              Instruction *userInstr = dyn_cast<Instruction>(userVal);
+              if (userInstr && flopIdMap.count(userInstr))
+                users.push_back(flopIdMap[userInstr]);
             }
+            // BUILD META AND SCOPE LOCATION
+            funcMeta.flops.push_back(
+                {flopId, blockId, funcId,
+                 std::string(Instruction::getOpcodeName(irInstr.getOpcode())),
+                 nameFPType(irInstr.getType()), users});
           }
         }
         blockId++;
@@ -239,9 +262,10 @@ void exportToJson(const std::string &moduleName,
   jsonModule["functions"] = std::move(jsonFunctions);
 
   std::error_code outError;
-  raw_fd_ostream out("fpgraph_pass_out.json", outError, sys::fs::OF_Text);
+  std::string filename = "fpgraph_pass_out.json";
+  raw_fd_ostream out(filename, outError, sys::fs::OF_Text);
   if (outError) {
-    errs() << "Could not write to JSON\n";
+    outMsg("Could not write to JSON: ", filename, "\n");
     return;
   }
   out << json::Value(std::move(jsonModule)) << "\n";
@@ -261,6 +285,7 @@ struct ExportGraphPass : public PassInfoMixin<ExportGraphPass> {
     auto flopIdMap = assignFlopIds(irModule, funcIdMap);
     auto funcs = buildFuncMetas(irModule, funcIdMap, flopIdMap, irCallGraph);
     exportToJson(irModule.getName().str(), funcs);
+    outMsg("End\n");
     return PreservedAnalyses::all();
   }
 };
@@ -271,9 +296,14 @@ llvmGetPassPluginInfo() {
           .PluginName = "Export Graph Pass",
           .PluginVersion = "v0.1",
           .RegisterPassBuilderCallbacks = [](PassBuilder &PB) {
-            PB.registerPipelineStartEPCallback(
-                [](ModulePassManager &MPM, OptimizationLevel Level) {
-                  MPM.addPass(ExportGraphPass());
+            PB.registerPipelineParsingCallback(
+                [](StringRef Name, ModulePassManager &MPM,
+                   ArrayRef<PassBuilder::PipelineElement>) {
+                  if (Name == "export-graph") {
+                    MPM.addPass(ExportGraphPass());
+                    return true;
+                  }
+                  return false;
                 });
           }};
 }
