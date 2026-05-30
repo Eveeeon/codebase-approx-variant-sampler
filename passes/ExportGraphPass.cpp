@@ -4,7 +4,7 @@
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
-#include "llvm/IR/Use.h"
+#include "llvm/IR/Type.h"
 #include "llvm/Pass.h"
 #include "llvm/Passes/PassBuilder.h"
 #include "llvm/Passes/PassPlugin.h"
@@ -13,26 +13,9 @@
 #include "llvm/Support/raw_ostream.h"
 #include <cmath>
 #include <cstdlib>
-#include <map>
 #include <string>
 #include <unordered_map>
 #include <vector>
-
-#include "llvm/Analysis/CallGraph.h"
-#include "llvm/IR/DerivedTypes.h"
-#include "llvm/IR/Function.h"
-#include "llvm/IR/Instruction.h"
-#include "llvm/IR/Instructions.h"
-#include "llvm/IR/Module.h"
-#include "llvm/IR/Type.h"
-#include "llvm/IR/Use.h"
-#include "llvm/Pass.h"
-#include "llvm/Passes/PassBuilder.h"
-#include "llvm/Passes/PassPlugin.h"
-#include "llvm/Support/FileSystem.h"
-#include "llvm/Support/JSON.h"
-#include "llvm/Support/raw_ostream.h"
-
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -48,6 +31,7 @@ struct FlopMeta {
   std::string opCode;
   std::string fpType;
   std::vector<int> users;
+  std::vector<int> inputs;
 };
 
 struct FuncMeta {
@@ -204,18 +188,27 @@ buildFuncMetas(Module &irModule,
             int flopId = flopIdMap[&irInstr];
 
             // get used-by edges, these expect the flop to be the original type,
-            // this needs handling
+            // this needs handling if this instruction is changed
             std::vector<int> users;
             for (auto *userVal : irInstr.users()) {
               Instruction *userInstr = dyn_cast<Instruction>(userVal);
               if (userInstr && flopIdMap.count(userInstr))
                 users.push_back(flopIdMap[userInstr]);
             }
+
+            // get input edges, the current instruction depends on these
+            std::vector<int> inputs;
+            for (auto &inputVal : irInstr.operands()) {
+              Instruction *inputInstr = dyn_cast<Instruction>(inputVal);
+              if (inputInstr && flopIdMap.count(inputInstr))
+                inputs.push_back(flopIdMap[inputInstr]);
+            }
+            
             // BUILD META AND SCOPE LOCATION
             funcMeta.flops.push_back(
                 {flopId, blockId, funcId,
                  std::string(Instruction::getOpcodeName(irInstr.getOpcode())),
-                 nameFPType(irInstr.getType()), users});
+                 nameFPType(irInstr.getType()), users, inputs});
           }
         }
         blockId++;
@@ -247,6 +240,7 @@ void exportToJson(const std::string &moduleName,
       jsonFlop["opCode"] = flop.opCode;
       jsonFlop["fpType"] = flop.fpType;
       jsonFlop["users"] = flop.users;
+      jsonFlop["inputs"] = flop.inputs;
       jsonFlops.push_back(std::move(jsonFlop));
     }
 

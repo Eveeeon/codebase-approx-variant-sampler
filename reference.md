@@ -8,7 +8,7 @@ make
 cd ../
 
 ## 2 compile code to bitcode
-clang -emit-llvm -O0 -c SimpleCode.cpp -o SimpleCode.bc
+clang -emit-llvm -O1 -c SimpleCode.cpp -o SimpleCode.bc
 
 ## 3 run graph export pass
 opt -load-pass-plugin ./build/passes/FPApprox.so \
@@ -22,6 +22,19 @@ opt -load-pass-plugin ./build/passes/FPApprox.so \
 
 ## 6 compile mutated bitcode to a binary
 clang SimpleCode_mutated.bc -o SimpleCode_mutated
+
+
+
+cd ~/Projects/codebase-approx-variant-sampler
+rm -rf build
+mkdir build
+cd build
+cmake .. -DLLVM_DIR=/usr/lib/llvm-18/lib/cmake/llvm
+make
+cd ../
+clang -emit-llvm -O0 -c ~/Projects/codebase-approx-variant-sampler/SimpleCode.cpp -o ~/Projects/codebase-approx-variant-sampler/SimpleCode.bc
+opt -load-pass-plugin ./build/passes/FPApprox.so -O1 -disable-output ./SimpleCode.bc
+
 
 
 # Guide
