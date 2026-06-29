@@ -1,0 +1,9 @@
+[llvm]
+llvm_dir = "/usr/lib/llvm-18"
+
+[paths]
+subject = "subject/SimpleCode.cpp"
+output = "out"
+
+[build]
+optimization = "O1"
