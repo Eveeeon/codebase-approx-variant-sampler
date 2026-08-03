@@ -2,10 +2,13 @@ import datetime
 import logging
 import json
 import uuid
+import random
 import networkx as nx
 import statistics as stats
+import argparse
 from enum import IntEnum
 from pathlib import Path
+from dataclasses import dataclass
 
 
 @dataclass
@@ -24,16 +27,17 @@ class VariantMetrics:
     variant_id: int
     rate: float
     flops_reduced: int
-    func_reduction_density: float
+    func_reduction_density_mean: float
+    func_reduction_density_std: float
     uc_depth_mean: float
     uc_depth_std: float
-    uc_modulatiry: float
+    uc_modularity: float
 
 
 # Import --------------------------------------------------------------
 
 
-def import_graph_raw(path: str) -> dict:
+def import_graph_raw(path: Path) -> dict:
     """_summary_
 
     Args:
@@ -108,16 +112,21 @@ def build_use_chain_graph(raw_data: dict) -> nx.DiGraph:
 def export_plan(selected_flops: list[int], from_type: str, to_type: str, path: Path):
     changes = [
         {"flopId": flop_id, "fromTypeName": from_type, "toTypeName": to_type}
-        for flop_id in select_flops
+        for flop_id in selected_flops
     ]
     with open(path, "w") as output_file:
-        json.dumps({"changes": changes}, output_file)
+        json.dumps({"changes": changes}, output_file, indent=2)
+
+
+def export_metrics(metrics: VariantMetrics, path: Path):
+    with open(path, "w") as output_file:
+        json.dumps({"metrics": metrics}, output_file, indent=2)
 
 
 # Helpers --------------------------------------------------------------
 
 
-def get_experiment_logger(experiment_id: str) -> logging.LoggerAdapter:
+def get_logger(experiment_id: str) -> logging.LoggerAdapter:
     logger = logging.getLogger("experiment")
 
     return logging.LoggerAdapter(logger, {"experiment_id": experiment_id})
@@ -138,24 +147,6 @@ def get_eligible_flops(use_chain_graph: nx.DiGraph, from_type: str) -> list[int]
         for node in use_chain_graph.nodes
         if use_chain_graph.nodes[node]["fp_type"] == from_type
     ]
-
-
-def check_func_contains_selected_flop(
-    func_node: nx.graph.node, selected_flops: list[int]
-) -> bool:
-    """Helper to check if a function node contains any flops that have been selected for reduction
-
-    Args:
-        func_node (nx.graph.node): the call graph node for a function
-        selected_flops (list[int]): list of ids of the flops selected for reduction
-
-    Returns:
-        bool: if the function contains flops selected to be reduced
-    """
-    for func_flop in func_node.flops:
-        if func_flop in selected_flops:
-            return True
-    return False
 
 
 # Compute --------------------------------------------------------------
@@ -192,12 +183,12 @@ def compute_depth_mean_std(
     Returns:
         tuple[float, float]: Mean, standard deviation
     """
-    sample_count = len(sample_flop_ids)
-    if sample_count_count < 1:
-        return (0, 0)
+    if sample_count == 0:
+        return 0.0, 0.0
+
     selected_flop_depths = [node_depths.get(flop_id) for flop_id in sample_flop_ids]
     depth_mean = stats.mean(selected_flop_depths)
-    depth_std = stats.stdev(selected_flop_depths)
+    depth_std = stats.stdev(selected_flop_depths) if len(node_depths) > 1 else 0.0
     return depth_mean, depth_std
 
 
@@ -281,8 +272,8 @@ def compute_variant_metrics(
         VariantMetrics: the evaluation metrics for the variant
     """
 
-    func_reduction_density = compute_func_reduction_density(
-        call_graph, eligible_flops, selected_flops
+    func_reduction_density_mean, func_reduction_density_std = (
+        compute_func_reduction_density(call_graph, eligible_flops, selected_flops)
     )
     use_chain_depth_mean, use_chain_depth_std = compute_depth_mean_std(
         selected_flops, call_graph_node_depths
@@ -292,13 +283,16 @@ def compute_variant_metrics(
     )
 
     return {
-        "variant_id": variant_id,
-        "rate": rate,
-        "flops_reduced": len(selected_flops),
-        "func_reduction_density": func_reduction_density,
-        "uc_depth_mean": selected_use_chain_depth_mean,
-        "uc_depth_std": selected_use_chain_depth_std,
-        "uc_modularity": use_chain_modularity,
+        VariantMetrics(
+            variant_id=variant_id,
+            rate=rate,
+            flops_reduced=len(selected_flops),
+            func_reduction_density_mean=func_reduction_density_mean,
+            func_reduction_density_std=func_reduction_density_std,
+            uc_depth_mean=selected_use_chain_depth_mean,
+            uc_depth_std=selected_use_chain_depth_std,
+            uc_modularity=use_chain_modularity,
+        )
     }
 
 
@@ -306,10 +300,16 @@ def compute_variant_metrics(
 
 
 def select_flops_random(eligible_flops: list[int], rate: float, seed: int) -> list[int]:
+    """Selects the list of floating point operations to be reduced randomly at a given rate
+    Args:
+        eligible_flops (list[int]): the list of FLOP ids that are eligible for precision reduction
+        rate (float): the rate of precision reduction to be applied
+        seed (int): a seed for random allocation of floating point precision reduction
+
+    Returns:
+        list[int]: the list of flop ids to be reduced
     """
-    Selects the list of floating point operations to be reduced randomly at a given rate
-    Returns the list of flop ids to be reduced
-    """
+
     rng = random.Random(seed)
     num_eligible = len(eligible_flops)
     reduction_count = 0
@@ -322,13 +322,24 @@ def select_flops_random(eligible_flops: list[int], rate: float, seed: int) -> li
 
 
 def generate_experiment(raw_data: dict, config: ExperimentConfig):
-    logger = get_experiment_logger(config.experiment_id)
+    """Generates a set of variants for a given experiment configuration, creating:
+    The experiment directory
+    A directory of plans, each to executed sequentially during the experiment
+    A single metrics file to be consumed after the experiment for evaluation
+
+    Args:
+        raw_data (dict): _description_
+        config (ExperimentConfig): _description_
+    """
+    logger = get_logger(config.experiment_id)
+    timestamp = datetime.datetime.now()
+    experiment_run_id = f"{config.experiment_id}_{timestamp}"
     # generate graph structure from the raw data
     call_graph = build_call_graph(raw_data)
     use_chain_graph = build_use_chain_graph(raw_data)
     eligible_flops = get_eligible_flops(use_chain_graph, config.from_type)
     if not eligible_flops:
-        experiment_logger.warning(
+        logger.warning(
             "No eligible floating point operations found, terminating"
         )
         return
@@ -346,12 +357,13 @@ def generate_experiment(raw_data: dict, config: ExperimentConfig):
 
     # creating experiment out directory
     out_path = Path(config.out_dir)
-    experiment_path = out_path / config.experiment_id
+    experiment_path = out_path / experiment_run_id
     experiment_path.mkdir(parents=True, exist_ok=True)
     experiment_plans = experiment_path / "plans"
     experiment_plans.mkdir(parents=True, exist_ok=True)
 
     metrics = {}
+    metrics["baseline"] = baseline_metrics
     for rate in config.reduction_rates:
         num_reduced = int(len(eligible_flops) * rate)
         logger.info(
@@ -359,13 +371,13 @@ def generate_experiment(raw_data: dict, config: ExperimentConfig):
         )
         for i in range(config.num_variants_per_rate):
             # give each variant a unique id, used for identification and to seed the random selection
-            variant_id = uuid.uuid1()
+            variant_id = uuid.uuid1().int
             selected_flops = select_flops_random(eligible_flops, rate, variant_id)
             export_plan(
                 selected_flops,
                 config.from_type,
                 config.to_type,
-                experiment_plans / variant_id,
+                experiment_plans / f"{variant_id}.json",
             )
             variant_metrics = compute_variant_metrics(
                 variant_id,
@@ -376,10 +388,17 @@ def generate_experiment(raw_data: dict, config: ExperimentConfig):
                 use_chain_graph,
                 call_graph,
             )
+        metrics[variant_id] = variant_metrics
+        metrics_path = experiment_path / f"{experiment_run_id}_metrics.json"
+        export_metrics(metrics, metrics_path)
 
 
 def __main__():
     logging.basicConfig(
-        level=loggin.INFO,
+        level=logging.INFO,
         format="%(levelname)s %(asctime)s [exp=%(experiment_id)s rate=%(reduction_rate)s %(message)s]",
     )
+    parser = argparse.ArgumentParser()
+    parser.add_argument("config", help="Path of the config file", type=Path)
+    parser.add_argument("llvm_export", help="Path of the exported llvm graph file", type=Path)
+    raw_data = import_graph_raw()

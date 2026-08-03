@@ -11,16 +11,22 @@
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/JSON.h"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm/Support/CommandLine.h"
 #include <cmath>
 #include <cstdlib>
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <string>
-#include <unordered_map>
-#include <vector>
 
 using namespace llvm;
+
+// Arguments --------------------------------------------------------------
+
+static cl::opt<std::string> GraphExportPath(
+  "graph-export-path",
+  cl::desc("Full path of the JSON export file from the export graph pass, including file name."),
+  cl::value_desc("graphExportPath")
+);
 
 // Data structs --------------------------------------------------------------
 
@@ -203,7 +209,7 @@ buildFuncMetas(Module &irModule,
               if (inputInstr && flopIdMap.count(inputInstr))
                 inputs.push_back(flopIdMap[inputInstr]);
             }
-            
+
             // BUILD META AND SCOPE LOCATION
             funcMeta.flops.push_back(
                 {flopId, blockId, funcId,
@@ -257,13 +263,16 @@ void exportToJson(const std::string &moduleName,
 
   std::error_code outError;
   std::string filename = "fpgraph_pass_out.json";
-  raw_fd_ostream out(filename, outError, sys::fs::OF_Text);
+  raw_fd_ostream out(GraphExportPath, outError, sys::fs::OF_Text);
   if (outError) {
     outMsg("Could not write to JSON: ", filename, "\n");
     return;
   }
   out << json::Value(std::move(jsonModule)) << "\n";
 }
+
+// Module and Plugin Definition
+// --------------------------------------------------------------
 
 // ExportGraphPass struct inherists from from PassInfoMixin<ExportGraphPass>
 // PassInfoMixin<***> is a templated base class, instantiated with *** itself

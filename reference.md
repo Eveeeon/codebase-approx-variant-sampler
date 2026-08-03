@@ -94,3 +94,6 @@ https://llvm.org/docs/ProgrammersManual.html#making-simple-changes
 
 ## Remove redudant ops
 https://llvm.org/docs/Passes.html#instcombine-combine-redundant-instructions
+
+## Pass command line arguments
+https://llvm.org/docs/CommandLine.html

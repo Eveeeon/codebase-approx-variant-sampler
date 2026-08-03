@@ -1,0 +1,17 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+
+[project]
+name = "variant-generator"
+version = "0.1.0"
+requires-python = ">=3.11"
+
+dependencies = [
+    "networkx",
+    "dataclasses"
+]
+
+[project.scripts]
+generator = "variant_generator.cli:main"

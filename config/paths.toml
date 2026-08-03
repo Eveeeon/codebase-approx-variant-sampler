@@ -1,9 +1,26 @@
 [llvm]
-llvm_dir = "/usr/lib/llvm-18"
+llvm_dir = "/usr/lib/llvm-18/lib/cmake/llvm"
+clang = "clang"
+opt = "opt"
+
+[project]
+subject = "subject/SimpleCode.cpp"
+subject_bc = "out/bitcode/original.bc"
 
 [paths]
-subject = "subject/SimpleCode.cpp"
-output = "out"
+out = "out"
+experiments = "out/experiments"
+
+export_graph = "out/export/fpgraph.json"
+
+passes_library = "cpp/build/passes/FPApprox.so"
 
 [build]
 optimization = "O1"
+
+[passes]
+export_pass = "export-graph"
+transform_pass = "reduce-precision"
+
+[experiment]
+repetitions = 20

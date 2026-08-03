@@ -7,11 +7,19 @@
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/raw_ostream.h"
 #include <llvm-18/llvm/IR/Instruction.h>
+#include "llvm/Support/CommandLine.h"
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 using namespace llvm;
+
+// Arguments --------------------------------------------------------------
+
+static cl::opt<std::string> PlanFilePath(
+  "plan-file-path",
+  cl::desc("Full path of the single variant plan file created by the varaiant generator.")
+);
 
 // Data structs --------------------------------------------------------------
 
@@ -90,36 +98,35 @@ static Type *getFPType(const std::string &fpTypeName, LLVMContext &ctx) {
 // loads the plan into map of instruction id to FlopChange
 std::unordered_map<int, FlopChange> loadFlopChanges(LLVMContext &ctx) {
   std::unordered_map<int, FlopChange> flopChanges;
-  std::string filename = "flop_change_plan.json";
 
-  auto dataBuffer = MemoryBuffer::getFile(filename);
+  auto dataBuffer = MemoryBuffer::getFile(PlanFilePath);
   if (!dataBuffer) {
-    outMsg("Could not read JSON: ", filename, "/n");
+    outMsg("Could not read JSON: ", PlanFilePath, "/n");
     return flopChanges;
   }
 
   auto dataJson = json::parse((*dataBuffer)->getBuffer());
   if (!dataJson) {
-    outMsg("Could not parse JSON: ", filename, "/n");
+    outMsg("Could not parse JSON: ", PlanFilePath, "/n");
     return flopChanges;
   }
 
   json::Object *dataObj = dataJson->getAsObject();
   if (!dataObj) {
-    outMsg("Parsed JSON not object structure: ", filename, "/n");
+    outMsg("Parsed JSON not object structure: ", PlanFilePath, "/n");
     return flopChanges;
   }
 
   json::Array *changes = dataObj->getArray("changes");
   if (!changes) {
-    outMsg("Parsed JSON does not have a list of changes: ", filename, "/n");
+    outMsg("Parsed JSON does not have a list of changes: ", PlanFilePath, "/n");
     return flopChanges;
   }
 
   for (auto &change : *changes) {
     json::Object *changeObj = change.getAsObject();
     if (!changeObj) {
-      outMsg("Parsed JSON list contains invalid data: ", filename, "/n");
+      outMsg("Parsed JSON list contains invalid data: ", PlanFilePath, "/n");
       continue;
     }
 
@@ -127,14 +134,14 @@ std::unordered_map<int, FlopChange> loadFlopChanges(LLVMContext &ctx) {
     auto fromTypeName = changeObj->getString("fromTypeName");
     auto toTypeName = changeObj->getString("toTypeName");
     if (!flopId || !fromTypeName || !toTypeName) {
-      outMsg("Parsed JSON list contains missing data: ", filename, "/n");
+      outMsg("Parsed JSON list contains missing data: ", PlanFilePath, "/n");
       continue;
     }
 
     Type *fromType = getFPType(std::string(*fromTypeName), ctx);
     Type *toType = getFPType(std::string(*toTypeName), ctx);
     if (!fromType || !toType) {
-      outMsg("Invalid types for: ", *flopId, " in ", filename, "/n");
+      outMsg("Invalid types for: ", *flopId, " in ", PlanFilePath, "/n");
       continue;
     }
 
