@@ -10,9 +10,7 @@ subject_bc = "out/bitcode/original.bc"
 [paths]
 out = "out"
 experiments = "out/experiments"
-
 export_graph = "out/export/fpgraph.json"
-
 passes_library = "cpp/build/passes/FPApprox.so"
 
 [build]
@@ -23,4 +21,22 @@ export_pass = "export-graph"
 transform_pass = "reduce-precision"
 
 [experiment]
+id = "test-01"
+
 repetitions = 20
+
+from_type = "double"
+to_type = "float"
+
+reduction_rates = [
+    0.1,
+    0.2,
+    0.4,
+    0.5,
+    0.6,
+    0.7,
+    0.8,
+    0.9
+]
+
+base_seed = 12345
