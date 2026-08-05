@@ -369,8 +369,8 @@ def generate(raw_data: dict, config: ExperimentConfig):
     A single metrics file to be consumed after the experiment for evaluation
 
     Args:
-        raw_data (dict): _description_
-        config (ExperimentConfig): _description_
+        raw_data (dict): the raw imported graph data
+        config (ExperimentConfig): the imported ExperimentConfig
     """
     logger = get_logger(config.experiment_id)
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")

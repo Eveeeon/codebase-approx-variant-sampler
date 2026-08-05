@@ -262,10 +262,9 @@ void exportToJson(const std::string &moduleName,
   jsonModule["functions"] = std::move(jsonFunctions);
 
   std::error_code outError;
-  std::string filename = "fpgraph_pass_out.json";
   raw_fd_ostream out(GraphExportPath, outError, sys::fs::OF_Text);
   if (outError) {
-    outMsg("Could not write to JSON: ", filename, "\n");
+    outMsg("Could not write to JSON: ", GraphExportPath, "\n");
     return;
   }
   out << json::Value(std::move(jsonModule)) << "\n";
