@@ -1,5 +1,7 @@
 import json
+import csv
 from pathlib import Path
+import tomllib
 from dataclasses import asdict, fields
 
 # Local package imports
@@ -7,7 +9,6 @@ from .model import (
     VariantMetrics,
     ExperimentConfig,
 )
-
 
 def import_config(root_path: Path, config_path: Path) -> ExperimentConfig:
     """Imports the config file as an ExperimentConfig type. 
@@ -37,7 +38,6 @@ def import_config(root_path: Path, config_path: Path) -> ExperimentConfig:
         base_seed=exp["base_seed"],
     )
 
-
 def import_graph_raw(path: Path) -> dict:
     """Imports the raw graph data JSON exported by the llvm export pass as a dictionary,
     no processing is carried out.
@@ -50,7 +50,6 @@ def import_graph_raw(path: Path) -> dict:
     """
     with open(path) as file:
         return json.load(file)
-
 
 def export_plan(selected_flops: list[int], from_type: str, to_type: str, path: Path):
     """Exports the plan for a single variant, specificying which FLOP ids to be reduced,
@@ -67,8 +66,7 @@ def export_plan(selected_flops: list[int], from_type: str, to_type: str, path: P
         for flop_id in selected_flops
     ]
     with open(path, "w") as output_file:
-        json.dumps({"changes": changes}, output_file, indent=2)
-
+        json.dump({"changes": changes}, output_file, indent=2)
 
 def export_metrics(metrics: list[VariantMetrics], path: Path):
     """Exports the metrics of all variants for a single experiment into a csv file

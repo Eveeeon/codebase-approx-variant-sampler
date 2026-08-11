@@ -36,8 +36,11 @@ def compute_depth_mean_std(
     Returns:
         tuple[float, float]: Mean, standard deviation
     """
-    if sample_count == 0:
+    if len(sample_flop_ids) == 0:
         return 0.0, 0.0
+    
+    if len(sample_flop_ids) == 1:
+        return sample_flop_ids[0], 0.0
 
     selected_flop_depths = [node_depths.get(flop_id) for flop_id in sample_flop_ids]
     depth_mean = stats.mean(selected_flop_depths)
@@ -63,7 +66,7 @@ def compute_func_reduction_density(
     for func in call_graph.nodes:
         func_flops = call_graph.nodes[func]["flops"]
         eligible_flops_in_func = [
-            flop["flop_id"] for flop in func_flops if flop["flop_id"] in eligible_flops
+            flop for flop in func_flops if flop in eligible_flops
         ]
         if not eligible_flops_in_func:
             continue
@@ -102,7 +105,7 @@ def compute_use_chain_selection_modularity(
 
 
 def compute_variant_metrics(
-    experiment_exec_id: str,
+    experiment_id: str,
     variant_id: int,
     rate: float,
     node_depths: dict,
@@ -131,22 +134,20 @@ def compute_variant_metrics(
         compute_func_reduction_density(call_graph, eligible_flops, selected_flops)
     )
     use_chain_depth_mean, use_chain_depth_std = compute_depth_mean_std(
-        selected_flops, call_graph_node_depths
+        selected_flops, node_depths
     )
     use_chain_modularity = compute_use_chain_selection_modularity(
         use_chain_graph, selected_flops
     )
 
-    return {
-        VariantMetrics(
-            experiment_exec_id=experiment_exec_id,
+    return VariantMetrics(
+            experiment_id=experiment_id,
             variant_id=variant_id,
             rate=rate,
             flops_reduced=len(selected_flops),
             func_reduction_density_mean=func_reduction_density_mean,
             func_reduction_density_std=func_reduction_density_std,
-            uc_depth_mean=selected_use_chain_depth_mean,
-            uc_depth_std=selected_use_chain_depth_std,
+            uc_depth_mean=use_chain_depth_mean,
+            uc_depth_std=use_chain_depth_std,
             uc_modularity=use_chain_modularity,
-        )
-    }
+    )

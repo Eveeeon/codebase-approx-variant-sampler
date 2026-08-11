@@ -1,20 +1,22 @@
 [llvm]
 llvm_dir = "/usr/lib/llvm-18/lib/cmake/llvm"
-clang = "clang"
+llvm_compiler = "clang"
 opt = "opt"
-
-[project]
-subject = "subject/SimpleCode.cpp"
-subject_bc = "out/bitcode/original.bc"
 
 [paths]
 out = "out"
 experiments = "out/experiments"
 export_graph = "out/export/fpgraph.json"
+cpp_build_dir = "cpp/build"
+passes_build_dir = "cpp/build/passes"
 passes_library = "cpp/build/passes/FPApprox.so"
+python_dir = "python"
+subject = "subject"
+subject_bc = "out/bitcode/original.bc"
 
 [build]
 optimization = "O1"
+source_file_type = "cpp"
 
 [passes]
 export_pass = "export-graph"
@@ -25,8 +27,8 @@ id = "test-01"
 
 repetitions = 20
 
-from_type = "double"
-to_type = "float"
+from_type = "fp64"
+to_type = "fp32"
 
 reduction_rates = [
     0.1,

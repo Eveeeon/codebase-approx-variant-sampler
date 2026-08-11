@@ -1,15 +1,16 @@
+#include "ReducePrecisionPass.h"
+#include "Common.h"
+#include "Model.h"
+
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/IR/Module.h"
 #include "llvm/Passes/PassBuilder.h"
-#include "llvm/Passes/PassPlugin.h"
 #include "llvm/Support/JSON.h"
 #include "llvm/Support/MemoryBuffer.h"
-#include "llvm/Support/raw_ostream.h"
 #include <llvm-18/llvm/IR/Instruction.h>
 #include "llvm/Support/CommandLine.h"
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 using namespace llvm;
@@ -20,78 +21,6 @@ static cl::opt<std::string> PlanFilePath(
   "plan-file-path",
   cl::desc("Full path of the single variant plan file created by the varaiant generator.")
 );
-
-// Data structs --------------------------------------------------------------
-
-struct FlopChange {
-  int flopId;
-  Type *fromType;
-  Type *toType;
-};
-
-// Helpers --------------------------------------------------------------
-
-// out message helper
-template <typename... rest> static void outMsg(const rest &...messages) {
-  errs() << "ReducePrecisionPass";
-  (errs() << ... << messages);
-}
-
-// check if an instruction is a floating point operation
-static bool isFlop(Instruction &irInstr) {
-  Type *irType = irInstr.getType();
-  if (!irType) {
-    return false;
-  }
-  if (irType->isFloatingPointTy()) {
-    return true;
-  }
-  // check if it is a vector of floating point types
-  if (auto *irVectType = dyn_cast<VectorType>(irType)) {
-    if (irVectType->getElementType()->isFloatingPointTy()) {
-      return true;
-    }
-  }
-  return false;
-}
-
-// check if instruction is a binary operation
-static bool isBinaryOp(Instruction &irInstr) {
-  BinaryOperator *irBinOp = dyn_cast<BinaryOperator>(&irInstr);
-  if (!irBinOp) {
-    return false;
-  }
-  return true;
-}
-
-// check if an instruction is both a floating point and binary operation
-static bool isBFlop(Instruction &irInstr) {
-  if (isFlop(irInstr) && isBinaryOp(irInstr)) {
-    return true;
-  }
-  return false;
-}
-
-// gets the llvm type based on the name from the plan JSON
-static Type *getFPType(const std::string &fpTypeName, LLVMContext &ctx) {
-  if (fpTypeName == "fp16")
-    return Type::getHalfTy(ctx);
-  if (fpTypeName == "fp32")
-    return Type::getFloatTy(ctx);
-  if (fpTypeName == "fp64")
-    return Type::getDoubleTy(ctx);
-  if (fpTypeName.rfind("vec_", 0) == 0) {
-    std::string rest = fpTypeName.substr(4);
-    auto sep = rest.find("_");
-    int count = std::stoi(rest.substr(0, sep));
-    std::string elemStr = rest.substr(sep + 1);
-    Type *elemType = getFPType(elemStr, ctx);
-    if (!elemType)
-      return nullptr;
-    return VectorType::get(elemType, count, false);
-  }
-  return nullptr;
-}
 
 // Main logic --------------------------------------------------------------
 
@@ -193,9 +122,10 @@ void applyTypeChange(Instruction &irInstr, Type *toType, Type *fromType) {
 
 // Pass --------------------------------------------------------------
 
-struct ReducePrecisionPass : public PassInfoMixin<ReducePrecisionPass> {
+PreservedAnalyses ReducePrecisionPass::run(
+    Module &irModule,
+    ModuleAnalysisManager &irMAM) {
 
-  PreservedAnalyses run(Module &irModule, ModuleAnalysisManager &irMAM) {
     auto flopChanges = loadFlopChanges(irModule.getContext());
     if (flopChanges.empty()) {
       outMsg("No changes found, no modification made\n");
@@ -230,29 +160,6 @@ struct ReducePrecisionPass : public PassInfoMixin<ReducePrecisionPass> {
 
     outMsg("Reduced precision of ", targetInstructions.size(), " operations\n");
     outMsg("end\n");
-    return PreservedAnalyses::none();
-  }
 
-  static bool isRequired() { return true; }
-};
-
-// Plugin registration
-// --------------------------------------------------------------
-
-extern "C" LLVM_ATTRIBUTE_WEAK ::llvm::PassPluginLibraryInfo
-llvmGetPassPluginInfo() {
-  return {.APIVersion = LLVM_PLUGIN_API_VERSION,
-          .PluginName = "Reduce Precision Pass",
-          .PluginVersion = "v0.1",
-          .RegisterPassBuilderCallbacks = [](PassBuilder &PB) {
-            PB.registerPipelineParsingCallback(
-                [](StringRef Name, ModulePassManager &MPM,
-                   ArrayRef<PassBuilder::PipelineElement>) {
-                  if (Name == "reduce-precision") {
-                    MPM.addPass(ReducePrecisionPass());
-                    return true;
-                  }
-                  return false;
-                });
-          }};
+  return PreservedAnalyses::none();
 }

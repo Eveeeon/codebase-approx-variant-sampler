@@ -15,7 +15,7 @@ class ExperimentConfig:
 
 @dataclass
 class VariantMetrics:
-    experiment_exec_id: str
+    experiment_id: str
     variant_id: int
     rate: float
     flops_reduced: int

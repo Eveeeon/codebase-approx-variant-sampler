@@ -14,4 +14,4 @@ dependencies = [
 ]
 
 [project.scripts]
-generator = "variant_generator.cli:main"
+variant_generator = "variant_generator.generate_variants:main"

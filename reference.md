@@ -97,3 +97,6 @@ https://llvm.org/docs/Passes.html#instcombine-combine-redundant-instructions
 
 ## Pass command line arguments
 https://llvm.org/docs/CommandLine.html
+
+## Pass plugin structs
+https://llvm.org/doxygen/structllvm_1_1PassPluginLibraryInfo.html
