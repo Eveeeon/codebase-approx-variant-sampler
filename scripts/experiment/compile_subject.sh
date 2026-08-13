@@ -5,14 +5,12 @@ set -euo pipefail
 # GLOBAL
 #########################################
 
-SCRIPT_NAME="compile_subject.sh"
-SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-# LOG_PATH=
-
-# Load helpers
+SCRIPT_NAME="compile_subject"
+THIS_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+START_SCRIPT="$THIS_DIR/start_script.sh"
+# Bootstap global paths and helpers through the start script
 # shellcheck source=/dev/null
-source "$SCRIPT_DIR/helpers.sh"
+source "$START_SCRIPT"
 out_msg_separator
 out_msg "==================== STARTING $SCRIPT_NAME ===================="
 out_msg "Root directory: $ROOT"
@@ -22,16 +20,24 @@ out_msg "Root directory: $ROOT"
 #########################################
 out_msg "READING config"
 
-CONFIG_PATH="$ROOT/config/experiment_config.toml"
-OUT_DIR="$ROOT/$(toml_get "$CONFIG_PATH" "out")"
-SUBJECT_DIR="$ROOT/$(toml_get "$CONFIG_PATH" "subject")"
-COMPILER="$(toml_get "$CONFIG_PATH" "llvm_compiler")"
-SRC_FILE_TYPE="$(toml_get "$CONFIG_PATH" "source_file_type")"
+# PATHS
+OUT_DIR="$ROOT/$(toml_get "$PROJ_CONFIG_PATH" "out")"
+SUBJECT_DIR="$ROOT/$(toml_get "$PROJ_CONFIG_PATH" "subject")"
+SUBJECT_BC_DIR="$ROOT/$(toml_get "$PROJ_CONFIG_PATH" "subject_bc_dir")"
+
+# PROJECT CONFIG
+COMPILER="$(toml_get "$PROJ_CONFIG_PATH" "llvm_compiler")"
+
+# EXPERIMENT CONFIG
+SUBJECT_PROJ_NAME="$(toml_get "$EXP_CONFIG_PATH" "source_project_name")"
+SRC_FILE_TYPE="$(toml_get "$EXP_CONFIG_PATH" "source_file_type")"
+
+# BUILD VARS FROM CONFIG
 SRC_FILE_MATCH="*.$SRC_FILE_TYPE"
-SUBJECT_BC="$ROOT/$(toml_get "$CONFIG_PATH" "subject_bc")"
+SUBJECT_BC="$SUBJECT_BC_DIR/$SUBJECT_PROJ_NAME.bc"
 
 #########################################
-# COMPILE TO BITCODE
+# COMPILE SUBJECT TO BITCODE
 #########################################
 out_msg_separator
 out_msg "COMPILING subject to bitcode"
@@ -46,12 +52,13 @@ out_msg_separator
 out_msg "COMPILING each $SRC_FILE_TYPE to temporary bitcode files"
 while IFS= read -r -d '' src; do
     TEMP_FILE="$(mktemp "$TEMP_DIR/XXXXXX.bc")"
-    "$COMPILER" -emit-llvm -O0 c "$src" -o "$TEMP_FILE"
+    run_code "$COMPILER" -emit-llvm -O1 -c "$src" -o "$TEMP_FILE"
     TEMP_FILES+=("$TEMP_FILE")
 done < <(find "$SUBJECT_DIR" -name "$SRC_FILE_MATCH" -print0 | sort -z)
 out_msg_separator
 out_msg "LINKING all temporary bitcode files into $SUBJECT_BC"
-llvm-link "${TEMP_FILES[@]}" -o "$SUBJECT_BC"
+mkdir -p "$SUBJECT_BC_DIR"
+run_code llvm-link "${TEMP_FILES[@]}" -o "$SUBJECT_BC"
 out_msg_separator
 out_msg "CLEARING temporary output directory"
 rm -rf "$TEMP_DIR"

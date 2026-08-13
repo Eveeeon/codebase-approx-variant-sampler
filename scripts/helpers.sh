@@ -1,5 +1,17 @@
 #!/usr/bin/env bash
 
+# Make sure file exists so it can be appended to for logging
+function ensure_file_exists() {
+    local FILE
+
+    FILE="$1"
+    mkdir -p "$(dirname "$FILE")"
+    if ! [ -e "$FILE" ] ; then
+        touch "$FILE"
+    fi
+}
+
+
 # Handle messages, write to logs and/or to terminal
 function out_msg() {
     local TIMESTAMP
@@ -11,11 +23,26 @@ function out_msg() {
     # to terminal
     echo "$MSG"
 
-    # to log file, define globally
-    if [[ -v LOG_PATH ]]; then
-        $MSG >> "$LOG_PATH"
+    # to log file, if defined in script
+    if [[ -v LOG_FILE ]]; then
+        if [[ -v SCRIPT_NAME ]]; then
+            ensure_file_exists "$LOG_FILE"
+            printf '%s\n' "$MSG" >> "$LOG_FILE"
+        fi
+    fi
+}
+
+function run_code() {
+    local OUTPUT
+    local STATUS
+
+        OUTPUT="$("$@" 2>&1)" || STATUS=$?
+
+    if [[ -n "${OUTPUT:-}" ]]; then
+        out_msg "$OUTPUT"
     fi
 
+    return "${STATUS:-0}"
 }
 
 # Write a separater line to the out_msg

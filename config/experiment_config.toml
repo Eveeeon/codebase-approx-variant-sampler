@@ -1,29 +1,7 @@
-[llvm]
-llvm_dir = "/usr/lib/llvm-18/lib/cmake/llvm"
-llvm_compiler = "clang"
-opt = "opt"
-
-[paths]
-out = "out"
-experiments = "out/experiments"
-export_graph = "out/export/fpgraph.json"
-cpp_build_dir = "cpp/build"
-passes_build_dir = "cpp/build/passes"
-passes_library = "cpp/build/passes/FPApprox.so"
-python_dir = "python"
-subject = "subject"
-subject_bc = "out/bitcode/original.bc"
-
-[build]
-optimization = "O1"
-source_file_type = "cpp"
-
-[passes]
-export_pass = "export-graph"
-transform_pass = "reduce-precision"
-
 [experiment]
+source_project_name = "test_project"
 id = "test-01"
+source_file_type = "cpp"
 
 repetitions = 20
 
@@ -42,3 +20,12 @@ reduction_rates = [
 ]
 
 base_seed = 12345
+
+
+[energibridge]
+# SET NAME OF PLATFORM HERE TO ONE OF THE OPTIONS BELOW
+# enrg_brg_apple_aarch64
+# enrg_brg_apple_darwin
+# enrg_brg_win_x86
+# enrg_brg_linux_x86
+enrg_brg_platform = "enrg_brg_linux_x86"

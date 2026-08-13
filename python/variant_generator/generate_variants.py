@@ -116,24 +116,25 @@ def generate(raw_data: dict, config: ExperimentConfig):
 
 
 def main():
-    log_path = (
-        "/home/eve/Projects/codebase-approx-variant-sampler/logs/generate_variants.log"
-    )
+    parser = argparse.ArgumentParser()
+    parser.add_argument("root_path", help="Path of the root directory", type=Path)
+    parser.add_argument("project_config", help="Path of the project config file", type=Path)
+    parser.add_argument("experiment_config", help="Path of the experiment config file", type=Path)
+    parser.add_argument("log_file_path", help="Full path of the log file", type=Path)
+    args = parser.parse_args()
+
     logging.basicConfig(
         level=logging.INFO,
         format="%(levelname)s %(asctime)s %(name)s %(message)s",
         handlers=[
-            logging.FileHandler(log_path),
+            logging.FileHandler(args.log_file_path),
             logging.StreamHandler(),
         ],
     )
     #    logger = get_logger(config.experiment_id)
     logging.getLogger("experiment").info("Starting generator")
-    parser = argparse.ArgumentParser()
-    parser.add_argument("root_path", help="Path of the root directory", type=Path)
-    parser.add_argument("config", help="Path of the config file", type=Path)
-    args = parser.parse_args()
-    config = import_config(args.root_path, args.config)
+
+    config = import_config(args.root_path, args.project_config, args.experiment_config)
     raw_data = import_graph_raw(config.raw_graph_path)
     generate(raw_data, config)
 

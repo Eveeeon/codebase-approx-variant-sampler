@@ -10,22 +10,25 @@ from .model import (
     ExperimentConfig,
 )
 
-def import_config(root_path: Path, config_path: Path) -> ExperimentConfig:
+def import_config(root_path: Path, project_config_path, experiment_config_path: Path) -> ExperimentConfig:
     """Imports the config file as an ExperimentConfig type. 
     Only imports the relevant config attributes defined in the ExperimentConfig dataclass.
 
     Args:
         root_path (Path):absolute path of the root of the project
-        config_path (Path): absolute path of the config file
+        project_config_path (Path): absolute path of the project config file
+        experiment_config_path (Path): absolute path of the experiment config file
 
     Returns:
         ExperimentConfig: the configuration for the experiment
     """
-    with open(config_path, "rb") as f:
-        config = tomllib.load(f)
+    with open(project_config_path, "rb") as f:
+        project_config = tomllib.load(f)
+    with open(experiment_config_path, "rb") as f:
+        experiment_config = tomllib.load(f)
 
-    exp = config["experiment"]
-    paths = config["paths"]
+    exp = experiment_config["experiment"]
+    paths = project_config["paths"]
 
     return ExperimentConfig(
         raw_graph_path=root_path / Path(paths["export_graph"]),

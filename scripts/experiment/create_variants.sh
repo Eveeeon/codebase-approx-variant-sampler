@@ -5,14 +5,12 @@ set -euo pipefail
 # GLOBAL
 #########################################
 
-SCRIPT_NAME="create_variants.sh"
-SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-# LOG_PATH=
-
-# Load helpers
+SCRIPT_NAME="create_variants"
+THIS_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+START_SCRIPT="$THIS_DIR/start_script.sh"
+# Bootstap global paths and helpers through the start script
 # shellcheck source=/dev/null
-source "$SCRIPT_DIR/helpers.sh"
+source "$START_SCRIPT"
 out_msg_separator
 out_msg "==================== STARTING $SCRIPT_NAME ===================="
 out_msg "Root directory: $ROOT"
@@ -22,18 +20,23 @@ out_msg "Root directory: $ROOT"
 #########################################
 out_msg "READING config"
 
-CONFIG_PATH="$ROOT/config/experiment_config.toml"
-LLVM_DIR="$ROOT/$(toml_get "$CONFIG_PATH" "llvm_dir")"
-CPP_BUILD_DIR="$ROOT/$(toml_get "$CONFIG_PATH" "cpp_build_dir")"
-COMPILER="$(toml_get "$CONFIG_PATH" "llvm_compiler")"
-PASSES_LIB="$ROOT/$(toml_get "$CONFIG_PATH" "passes_library")"
-SUBJECT_BC="$ROOT/$(toml_get "$CONFIG_PATH" "subject_bc")"
-OPTIMIZATION="$(toml_get "$CONFIG_PATH" "optimization")"
-EXPORT_PASS="$(toml_get "$CONFIG_PATH" "export_pass")"
-TRANSFORM_PASS="$(toml_get "$CONFIG_PATH" "transform_pass")"
-EXPORT_GRAPH="$ROOT/$(toml_get "$CONFIG_PATH" "export_graph")"
-EXPERIMENT_DIR="$ROOT/$(toml_get "$CONFIG_PATH" "experiments")/$(toml_get "$CONFIG_PATH" "id")"
-PYTHON_DIR="$ROOT/$(toml_get "$CONFIG_PATH" "python_dir")"
+# PATHS
+PASSES_LIB="$ROOT/$(toml_get "$PROJ_CONFIG_PATH" "passes_library")"
+SUBJECT_BC_DIR="$ROOT/$(toml_get "$PROJ_CONFIG_PATH" "subject_bc_dir")"
+EXPERIMENT_DIR="$ROOT/$(toml_get "$PROJ_CONFIG_PATH" "experiments")/$(toml_get "$EXP_CONFIG_PATH" "id")"
+PYTHON_DIR="$ROOT/$(toml_get "$PROJ_CONFIG_PATH" "python_dir")"
+EXPORT_GRAPH="$ROOT/$(toml_get "$PROJ_CONFIG_PATH" "export_graph")"
+
+# PROJECT CONFIG
+COMPILER="$(toml_get "$PROJ_CONFIG_PATH" "llvm_compiler")"
+EXPORT_PASS="$(toml_get "$PROJ_CONFIG_PATH" "export_pass")"
+TRANSFORM_PASS="$(toml_get "$PROJ_CONFIG_PATH" "transform_pass")"
+
+# EXPERIMENT CONFIG
+SUBJECT_PROJ_NAME="$(toml_get "$EXP_CONFIG_PATH" "source_project_name")"
+
+# BUILD VARS FROM CONFIG
+SUBJECT_BC="$SUBJECT_BC_DIR/$SUBJECT_PROJ_NAME.bc"
 
 #########################################
 # RUN EXPORT GRAPH PASS
@@ -41,7 +44,7 @@ PYTHON_DIR="$ROOT/$(toml_get "$CONFIG_PATH" "python_dir")"
 out_msg_separator
 out_msg "RUNNING export pass"
 
-#opt -load-pass-plugin "$PASSES_LIB" "-$OPTIMIZATION" -passes="$EXPORT_PASS" --graph-export-path="$EXPORT_GRAPH" -disable-output "$SUBJECT_BC"
+#opt -load-pass-plugin "$PASSES_LIB" "-O1" -passes="$EXPORT_PASS" --graph-export-path="$EXPORT_GRAPH" -disable-output "$SUBJECT_BC"
 opt -load-pass-plugin "$PASSES_LIB" -passes="$EXPORT_PASS" --graph-export-path="$EXPORT_GRAPH" -disable-output "$SUBJECT_BC"
 
 out_msg "Exported graph: $EXPORT_GRAPH"
@@ -54,7 +57,7 @@ out_msg "RUNNING variant generator"
 cd "$PYTHON_DIR"
 # shellcheck source=/dev/null
 source .venv/bin/activate
-python3 -m variant_generator.generate_variants "$ROOT" "$CONFIG_PATH"
+run_code python3 -m variant_generator.generate_variants "$ROOT" "$PROJ_CONFIG_PATH" "$EXP_CONFIG_PATH" "$LOG_FILE"
 out_msg "Variants plans generated"
 cd "$ROOT"
 
@@ -76,7 +79,7 @@ for PLAN_FILE in "$PLANS_DIR"/*.json; do
     VARIANT_ID="$(basename "$PLAN_FILE" .json)"
     VARIANT_BC="$BC_DIR/$VARIANT_ID.bc"
     VARIANT_BIN="$BIN_DIR/$VARIANT_ID"
-    opt -load-pass-plugin "$PASSES_LIB" -passes="${TRANSFORM_PASS},instcombine" --plan-file-path="$PLAN_FILE" -o $VARIANT_BC "$SUBJECT_BC"
+    run_code opt -load-pass-plugin "$PASSES_LIB" -passes="${TRANSFORM_PASS},instcombine" --plan-file-path="$PLAN_FILE" -o $VARIANT_BC "$SUBJECT_BC"
     if "$COMPILER" "$VARIANT_BC" -o "$VARIANT_BIN" 2>&1; then
         COMP_PASS_COUNT=$((COMP_PASS_COUNT + 1))
     else

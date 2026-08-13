@@ -1,0 +1,29 @@
+[llvm]
+llvm_dir = "/usr/lib/llvm-18/lib/cmake/llvm"
+llvm_compiler = "clang"
+opt = "opt"
+source_file_type = "cpp"
+
+[paths]
+out = "out"
+experiments = "out/experiments"
+export_graph = "out/export/fpgraph.json"
+cpp_build_dir = "cpp/build"
+passes_build_dir = "cpp/build/passes"
+passes_library = "cpp/build/passes/FPApprox.so"
+python_dir = "python"
+subject = "subject"
+subject_bc_dir = "out/subject_bitcode"
+
+[passes]
+export_pass = "export-graph"
+transform_pass = "reduce-precision"
+
+[energibridge]
+enrg_brg_apple_aarch64 = "x86_64-unknown-linux-musl"
+enrg_brg_apple_darwin = "x86_64-unknown-linux-musl"
+enrg_brg_win_x86 = "x86_64-unknown-linux-musl"
+enrg_brg_linux_x86 = "x86_64-unknown-linux-musl"
+enrg_brg_base_url = "https://github.com/tdurieux/EnergiBridge/releases/download/"
+enrg_brg_version = "0.0.7"
+enrg_brg_install_dir = "third_party/energibridge"

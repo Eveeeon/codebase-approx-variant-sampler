@@ -1,4 +1,7 @@
 out/
 build/
 workdump/
+install/
+temp/
+logs/
 .venv/
