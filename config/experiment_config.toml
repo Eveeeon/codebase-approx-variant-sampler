@@ -29,3 +29,4 @@ base_seed = 12345
 # enrg_brg_win_x86
 # enrg_brg_linux_x86
 enrg_brg_platform = "enrg_brg_linux_x86"
+enrg_brg_interval = 200

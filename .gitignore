@@ -4,4 +4,5 @@ workdump/
 install/
 temp/
 logs/
+third_party/
 .venv/

@@ -69,7 +69,7 @@ out_msg "APLLYING variant plans to subject"
 
 PLANS_DIR="$EXPERIMENT_DIR/plans"
 BC_DIR="$EXPERIMENT_DIR/bitcode"
-BIN_DIR="$EXPERIMENT_DIR/variants"
+BIN_DIR="$EXPERIMENT_DIR/binary"
 mkdir -p "$BC_DIR"
 mkdir -p "$BIN_DIR"
 
