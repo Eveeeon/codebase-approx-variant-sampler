@@ -1,13 +1,19 @@
 [experiment]
+# Name of source code
 source_project_name = "test_project"
+# Experiment id
 id = "test-01"
+# The file extension of source files
 source_file_type = "cpp"
 
 repetitions = 20
 
+# "fp64" | "fp32" | "fp16"
 from_type = "fp64"
+# "fp64" | "fp32" | "fp16"
 to_type = "fp32"
 
+# List of reduction rates for the experiment to try
 reduction_rates = [
     0.1,
     0.2,
@@ -19,14 +25,27 @@ reduction_rates = [
     0.9
 ]
 
+# Random number seed
 base_seed = 12345
 
+[adapter]
+# Value to pass into stdin
+# "" for none
+stdin = ""
+# List of values to pass as args
+# [] for none
+args = []
+# Path of the directory of files that stdout is written to (relative to the root)
+# "" for none
+stdout_path = ""
+# File extension of file that stdout is written to
+# "csv" | "txt" | "json"...
+# "" for none
+stdout_file_type = ""
 
 [energibridge]
 # SET NAME OF PLATFORM HERE TO ONE OF THE OPTIONS BELOW
-# enrg_brg_apple_aarch64
-# enrg_brg_apple_darwin
-# enrg_brg_win_x86
-# enrg_brg_linux_x86
+# "enrg_brg_apple_aarch64" | "enrg_brg_apple_darwin" | "enrg_brg_win_x86" | "enrg_brg_linux_x86"
 enrg_brg_platform = "enrg_brg_linux_x86"
+# Integer number of milliseconds, 200 or more
 enrg_brg_interval = 200

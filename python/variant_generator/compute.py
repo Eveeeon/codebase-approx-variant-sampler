@@ -98,13 +98,6 @@ def compute_use_chain_selection_modularity(
     """
     selected_set = set(selected_nodes)
     unselected_set = set(use_chain_graph.nodes()) - selected_set
-
-    print(
-    "nodes:", use_chain_graph.number_of_nodes(),
-    "edges:", use_chain_graph.number_of_edges(),
-    "selected:", len(selected_set),
-    "unselected:", len(unselected_set),
-    )
     modularity = nx.community.modularity(
         use_chain_graph, [selected_set, unselected_set]
     )

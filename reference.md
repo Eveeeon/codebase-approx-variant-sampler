@@ -1,3 +1,31 @@
+# PIPELINE
+
+## Pre-Adapter
+input = source code
+output = single bitcode file
+
+## Variant Generator
+input = single bitcode file
+output = directory of variant plan json files, a single csv file for of variant metrics
+
+## Builder
+input = single bitcode file, a directory of variant plan json files
+output = directory of variant binary files
+
+## Post-Adapter
+input = directory of variant binary files
+output = directory of binary file execution command files
+
+## Evaluator
+input = directory of variant binary files, directory of binary file execution command files
+output = directory of energy measurement files, directory of binary file output
+
+
+
+
+
+
+
 # Quick Temp Commands
 
 ## 1 build passes

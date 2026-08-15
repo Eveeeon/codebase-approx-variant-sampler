@@ -3,6 +3,7 @@ import csv
 from pathlib import Path
 import tomllib
 from dataclasses import asdict, fields
+import logging
 
 # Local package imports
 from .model import (

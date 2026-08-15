@@ -20,6 +20,12 @@ function out_msg() {
     TIMESTAMP="$(date +%Y-%m-%d~%H:%M:%S)"
     MSG="[$TIMESTAMP] ~~ $1"
 
+    if [[ -v EXPERIMENT_ID ]]; then
+        MSG="INFO $TIMESTAMP [experiment=$EXPERIMENT_ID] $SCRIPT_NAME ~~ $1"
+    else
+        MSG="INFO $TIMESTAMP [] $SCRIPT_NAME ~~ $1"
+    fi
+
     # to terminal
     echo "$MSG"
 

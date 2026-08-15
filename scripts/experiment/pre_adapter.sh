@@ -5,20 +5,16 @@ set -euo pipefail
 # GLOBAL
 #########################################
 
-SCRIPT_NAME="compile_subject"
+SCRIPT_NAME="pre_adapter"
 THIS_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 START_SCRIPT="$THIS_DIR/start_script.sh"
 # Bootstap global paths and helpers through the start script
 # shellcheck source=/dev/null
 source "$START_SCRIPT"
-out_msg_separator
-out_msg "==================== STARTING $SCRIPT_NAME ===================="
-out_msg "Root directory: $ROOT"
 
 #########################################
 # READ CONFIG
 #########################################
-out_msg "READING config"
 
 # PATHS
 OUT_DIR="$ROOT/$(toml_get "$PROJ_CONFIG_PATH" "out")"
@@ -31,10 +27,14 @@ COMPILER="$(toml_get "$PROJ_CONFIG_PATH" "llvm_compiler")"
 # EXPERIMENT CONFIG
 SUBJECT_PROJ_NAME="$(toml_get "$EXP_CONFIG_PATH" "source_project_name")"
 SRC_FILE_TYPE="$(toml_get "$EXP_CONFIG_PATH" "source_file_type")"
+EXPERIMENT_ID="$(toml_get "$EXP_CONFIG_PATH" "id")"
 
 # BUILD VARS FROM CONFIG
 SRC_FILE_MATCH="*.$SRC_FILE_TYPE"
 SUBJECT_BC="$SUBJECT_BC_DIR/$SUBJECT_PROJ_NAME.bc"
+
+out_msg_separator
+out_msg "==================== STARTING $SCRIPT_NAME ===================="
 
 #########################################
 # COMPILE SUBJECT TO BITCODE

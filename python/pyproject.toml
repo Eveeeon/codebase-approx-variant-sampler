@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 
 [project]
-name = "variant-generator"
+name = "codebase-approx-variant-sampler"
 version = "0.1.0"
 requires-python = ">=3.11"
 
@@ -15,3 +15,4 @@ dependencies = [
 
 [project.scripts]
 variant_generator = "variant_generator.generate_variants:main"
+post_adapter = "post_adapter.generate_commands:main"
