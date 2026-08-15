@@ -4,7 +4,10 @@ import tomllib
 # Local package imports
 from .model import SubjectAdapterConfig
 
-def import_config(root_path: Path, project_config_path, experiment_config_path: Path) -> SubjectAdapterConfig:
+
+def import_config(
+    root_path: Path, project_config_path, experiment_config_path: Path
+) -> SubjectAdapterConfig:
     """Imports the subject adapter configuration
 
     Args:
@@ -23,15 +26,17 @@ def import_config(root_path: Path, project_config_path, experiment_config_path: 
     exp = experiment_config["experiment"]
     paths = project_config["paths"]
     adapter = experiment_config["adapter"]
+    experiment_dir = root_path / Path(paths["experiments"]) / Path(exp["id"])
 
     return SubjectAdapterConfig(
-        experiment_dir=root_path / Path(paths["experiments"]) / Path(exp["id"]),
+        experiment_dir=experiment_dir,
         experiment_id=exp["id"],
         stdin_val=adapter["stdin"],
         args=adapter["args"],
-        stdout_path=root_path / adapter["stdout_path"],
+        stdout_path=experiment_dir / Path(adapter["stdout_dir_name"]),
         stdout_file_type=adapter["stdout_file_type"],
     )
+
 
 def write_to_cmd_file(path: Path, cmd: str):
     """Writes a given variant execution command to a .sh file to be executed

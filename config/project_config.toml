@@ -12,7 +12,7 @@ cpp_build_dir = "cpp/build"
 passes_build_dir = "cpp/build/passes"
 passes_library = "cpp/build/passes/FPApprox.so"
 python_dir = "python"
-subject = "subject"
+subject = "test_subject"
 subject_bc_dir = "out/subject_bitcode"
 
 [passes]

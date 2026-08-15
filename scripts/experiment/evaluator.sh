@@ -40,6 +40,7 @@ out_msg "==================== STARTING $SCRIPT_NAME ===================="
 out_msg_separator
 out_msg "EXECUTING binary command strings through EnergiBridge"
 
+mkdir -p "$MEASUREMENT_DIR"
 
 for BINARY_FILE in "$COMMAND_DIR"/*; do
     VARIANT_ID="$(basename "$BINARY_FILE")"

@@ -31,13 +31,13 @@ base_seed = 12345
 [adapter]
 # Value to pass into stdin
 # "" for none
-stdin = ""
+stdin = "3.0 4.0"
 # List of values to pass as args
 # [] for none
 args = []
 # Path of the directory of files that stdout is written to (relative to the root)
 # "" for none
-stdout_path = ""
+stdout_dir_name = "out/results"
 # File extension of file that stdout is written to
 # "csv" | "txt" | "json"...
 # "" for none
