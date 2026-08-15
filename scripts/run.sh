@@ -1,44 +1,17 @@
 #!/usr/bin/env bash
-set -e
-
-ROOT=$(dirname "$(realpath "$0")")/..
-cd "$ROOT"
-
-mkdir -p cpp/build
-mkdir -p out/export
-mkdir -p out/bitcode
-mkdir -p out/experiments
+set -euo pipefail
 
 #########################################
-# Build LLVM passes
+# GLOBAL
 #########################################
 
-cmake -S cpp \
-      -B cpp/build \
-      -DLLVM_DIR=/usr/lib/llvm-18/lib/cmake/llvm
+SCRIPT_NAME="pre_adapter"
+THIS_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
-cmake --build cpp/build
-
-#########################################
-# Compile subject
-#########################################
-
-clang -emit-llvm -O1 \
-    -c subject/SimpleCode.cpp \
-    -o out/bitcode/original.bc
-
-#########################################
-# Export graph
-#########################################
-
-opt \
-    -load-pass-plugin cpp/build/passes/FPApprox.so \
-    -passes="export-graph" \
-    -disable-output \
-    out/bitcode/original.bc
-
-#########################################
-# Generate experiment
-#########################################
-
-python3 -m variant_generator.generate_plan
+"$THIS_DIR/install/install_energibridge.sh"
+#/home/eve/Projects/codebase-approx-variant-sampler/scripts/experiment/setup.sh
+#/home/eve/Projects/codebase-approx-variant-sampler/scripts/experiment/pre_adapter.sh
+#/home/eve/Projects/codebase-approx-variant-sampler/scripts/experiment/variant_generator.sh
+#/home/eve/Projects/codebase-approx-variant-sampler/scripts/experiment/builder.sh
+#/home/eve/Projects/codebase-approx-variant-sampler/scripts/experiment/post_adapter.sh
+#/home/eve/Projects/codebase-approx-variant-sampler/scripts/experiment/evaluator.sh

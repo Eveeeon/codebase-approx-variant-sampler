@@ -1,8 +1,8 @@
 out/
 build/
 workdump/
-install/
 temp/
 logs/
 third_party/
+subject/
 .venv/
