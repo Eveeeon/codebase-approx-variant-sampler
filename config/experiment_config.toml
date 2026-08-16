@@ -4,16 +4,19 @@ source_project_name = "test_project"
 # Experiment id
 id = "test-01"
 # The file extension of source files
+# cpp | c | ...
 source_file_type = "cpp"
-
-repetitions = 20
-
+# File extension of file that stdout is written to
+# "csv" | "txt" | "json"...
+# "" for none
+stdout_file_type = "txt"
+# What type of floating point operations should be reduced to what other
 # "fp64" | "fp32" | "fp16"
 from_type = "fp64"
 # "fp64" | "fp32" | "fp16"
 to_type = "fp32"
-
-# List of reduction rates for the experiment to try
+# List of reduction rates for the experiment to run
+# 0.1 means ~10% of eligible floating point operations will be reduced
 reduction_rates = [
     0.1,
     0.2,
@@ -24,7 +27,12 @@ reduction_rates = [
     0.8,
     0.9
 ]
-
+# Number of randomly generated variants created for each reduction rate
+variants_per_rate = 20
+# Number of times each variant is repeated during energy evaluation
+repeat_variant = 20
+# Number of times the entire experiment evaluation is repeated
+repeat_evaluation = 20
 # Random number seed
 base_seed = 12345
 
@@ -35,13 +43,6 @@ stdin = "3.0 4.0"
 # List of values to pass as args
 # [] for none
 args = []
-# Path of the directory of files that stdout is written to (relative to the root)
-# "" for none
-stdout_dir_name = "out/results"
-# File extension of file that stdout is written to
-# "csv" | "txt" | "json"...
-# "" for none
-stdout_file_type = ""
 
 [energibridge]
 # SET NAME OF PLATFORM HERE TO ONE OF THE OPTIONS BELOW

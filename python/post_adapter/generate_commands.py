@@ -23,25 +23,22 @@ def set_logger(experiment_id: str, log_file_path: Path):
 def build_run_command(
     binary_path: Path, variant_id: str, config: SubjectAdapterConfig
 ) -> str:
-    """Build a single execution command for a variant binary with args, stdin, etc.
-
+    """Build a single execution command to evaluate variant binary
+    Passes in given args, stdin
     Args:
         binary_path (Path): full path to the binary
         variant_id (str): the unique id of the variant
         config (SubjectAdapterConfig): the experiment subject adapter configuration
 
     Returns:
-        str: the built command string
+        str: the built command string for executing the binary with inputs if given
     """
     cmd = binary_path.resolve()
     if config.stdin_val:
-        cmd = f"echo '{adapter_config['stdin_val']}' | {cmd}"
+        cmd = f"echo '{config.stdin_val}' | {cmd}"
     if config.args:
         cmd = f"{cmd} {args}"
-    if config.stdout_path:
-        cmd = f"{cmd} | tee {config.stdout_path}/{variant_id}.{config.stdout_file_type}"
     return cmd
-
 
 def generate_run_commands(config: SubjectAdapterConfig):
     """Iterates through the binary directory, generating a corresponding command file for each
@@ -51,7 +48,7 @@ def generate_run_commands(config: SubjectAdapterConfig):
     """
     binary_dir = config.experiment_dir / "binary"
     logger = logging.getLogger("generate commands")
-    logger.info(f"CREATING command files for {len(binary_dir.iterdir())} binary files")
+    logger.info(f"CREATING command files for {len([file for file in binary_dir.iterdir()])} binary files")
     for file in binary_dir.iterdir():
         variant_id = file.name
         cmd = build_run_command(file, variant_id, config)

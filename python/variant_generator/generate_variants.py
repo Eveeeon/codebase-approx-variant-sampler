@@ -104,6 +104,8 @@ def generate(raw_data: dict, config: ExperimentConfig):
     logger.info("COMPUTING metrics for the baseline code with no modifications")
     metrics = []
     metrics.append(baseline_metrics)
+    total_variants = len(config.reduction_rates) * config.num_variants_per_rate
+    logger.info(f"Total number of variants to create: {total_variants}")
     for rate in config.reduction_rates:
         num_reduced = int(len(eligible_flops) * rate)
         logger.info(

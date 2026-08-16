@@ -76,8 +76,6 @@ std::unordered_map<int, FlopChange> loadFlopChanges(LLVMContext &ctx) {
 
     flopChanges[(int)*flopId] = {(int)*flopId, fromType, toType};
   }
-
-  outMsg("Total loaded changes: ", flopChanges.size());
   return flopChanges;
 }
 
@@ -128,7 +126,6 @@ PreservedAnalyses ReducePrecisionPass::run(
 
     auto flopChanges = loadFlopChanges(irModule.getContext());
     if (flopChanges.empty()) {
-      outMsg("No changes found, no modification made\n");
       return PreservedAnalyses::all();
     }
 
@@ -157,9 +154,6 @@ PreservedAnalyses ReducePrecisionPass::run(
       applyTypeChange(*targetInstructions[i], targetFlopChanges[i].toType,
                       targetFlopChanges[i].fromType);
       }
-
-    outMsg("Reduced precision of ", targetInstructions.size(), " operations\n");
-    outMsg("end\n");
 
   return PreservedAnalyses::none();
 }

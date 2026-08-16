@@ -32,13 +32,13 @@ def import_config(root_path: Path, project_config_path, experiment_config_path: 
     paths = project_config["paths"]
 
     return ExperimentConfig(
-        raw_graph_path=root_path / Path(paths["export_graph"]),
+        raw_graph_path=root_path / Path(paths["export_graph_dir"]) / f"{exp[id].json}",
         out_dir=root_path / Path(paths["experiments"]),
         experiment_id=exp["id"],
         from_type=exp["from_type"],
         to_type=exp["to_type"],
         reduction_rates=exp["reduction_rates"],
-        num_variants_per_rate=exp["repetitions"],
+        num_variants_per_rate=exp["variants_per_rate"],
         base_seed=exp["base_seed"],
     )
 

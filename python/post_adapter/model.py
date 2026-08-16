@@ -7,5 +7,3 @@ class SubjectAdapterConfig:
     experiment_id: str
     stdin_val: str
     args: list[str]
-    stdout_path: Path
-    stdout_file_type: str

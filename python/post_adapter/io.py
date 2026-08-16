@@ -33,8 +33,6 @@ def import_config(
         experiment_id=exp["id"],
         stdin_val=adapter["stdin"],
         args=adapter["args"],
-        stdout_path=experiment_dir / Path(adapter["stdout_dir_name"]),
-        stdout_file_type=adapter["stdout_file_type"],
     )
 
 

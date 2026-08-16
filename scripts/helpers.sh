@@ -65,7 +65,7 @@ function error_msg() {
 
 # Read simple TOML files
 # only handles simple one-to-one key,value pairs
-toml_get() {
+function toml_get() {
     local KEY
     local KEY_REGEX
     local VAL_REGEX

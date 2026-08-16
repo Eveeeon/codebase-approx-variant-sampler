@@ -5,15 +5,19 @@ opt = "opt"
 source_file_type = "cpp"
 
 [paths]
-out = "out"
-experiments = "out/experiments"
-export_graph = "out/export/fpgraph.json"
+# Out
+out_dir = "out"
+experiments_dir = "experiments"
+subject_bc_dir = "subject_bitcode"
+export_graph_dir = "graph_export"
+# CPP
 cpp_build_dir = "cpp/build"
 passes_build_dir = "cpp/build/passes"
 passes_library = "cpp/build/passes/FPApprox.so"
+# Python
 python_dir = "python"
+# Subject
 subject = "test_subject"
-subject_bc_dir = "out/subject_bitcode"
 
 [passes]
 export_pass = "export-graph"

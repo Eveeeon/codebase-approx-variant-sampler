@@ -19,15 +19,12 @@ source "$START_SCRIPT"
 # PATHS
 PYTHON_DIR="$ROOT/$(toml_get "$PROJ_CONFIG_PATH" "python_dir")"
 
-# EXPERIMENT CONFIG
-EXPERIMENT_ID="$(toml_get "$EXP_CONFIG_PATH" "id")"
-
 out_msg_separator
 out_msg "==================== STARTING $SCRIPT_NAME ===================="
 
 #########################################
 # BUILD EXECUTION COMMANDS
-#########################################
+######################################### 
 out_msg_separator
 out_msg "CREATING execution command file for each binary"
 cd "$PYTHON_DIR"

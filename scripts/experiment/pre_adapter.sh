@@ -19,7 +19,9 @@ source "$START_SCRIPT"
 # PATHS
 OUT_DIR="$ROOT/$(toml_get "$PROJ_CONFIG_PATH" "out")"
 SUBJECT_DIR="$ROOT/$(toml_get "$PROJ_CONFIG_PATH" "subject")"
-SUBJECT_BC_DIR="$ROOT/$(toml_get "$PROJ_CONFIG_PATH" "subject_bc_dir")"
+
+# BUILD OUT DIRECTORY
+OUT_BC_DIR="$ROOT/$OUT_DIR/$(toml_get "$PROJ_CONFIG_PATH" "subject_bc_dir")"
 
 # PROJECT CONFIG
 COMPILER="$(toml_get "$PROJ_CONFIG_PATH" "llvm_compiler")"
@@ -27,15 +29,16 @@ COMPILER="$(toml_get "$PROJ_CONFIG_PATH" "llvm_compiler")"
 # EXPERIMENT CONFIG
 SUBJECT_PROJ_NAME="$(toml_get "$EXP_CONFIG_PATH" "source_project_name")"
 SRC_FILE_TYPE="$(toml_get "$EXP_CONFIG_PATH" "source_file_type")"
-EXPERIMENT_ID="$(toml_get "$EXP_CONFIG_PATH" "id")"
 
 # BUILD VARS FROM CONFIG
 SRC_FILE_MATCH="*.$SRC_FILE_TYPE"
-SUBJECT_BC="$SUBJECT_BC_DIR/$SUBJECT_PROJ_NAME.bc"
+SUBJECT_BC="$OUT_BC_DIR/$SUBJECT_PROJ_NAME.bc"
+
+
 
 out_msg_separator
 out_msg "==================== STARTING $SCRIPT_NAME ===================="
-
+out_msg "TARGETING subject: $SUBJECT_PROJ_NAME"
 #########################################
 # COMPILE SUBJECT TO BITCODE
 #########################################
@@ -57,12 +60,10 @@ while IFS= read -r -d '' src; do
 done < <(find "$SUBJECT_DIR" -name "$SRC_FILE_MATCH" -print0 | sort -z)
 out_msg_separator
 out_msg "LINKING all temporary bitcode files into $SUBJECT_BC"
-mkdir -p "$SUBJECT_BC_DIR"
+mkdir -p "$OUT_BC_DIR"
 run_code llvm-link "${TEMP_FILES[@]}" -o "$SUBJECT_BC"
 out_msg_separator
 out_msg "CLEARING temporary output directory"
 rm -rf "$TEMP_DIR"
-mkdir "$TEMP_DIR"
 out_msg_separator
-
 out_msg "==================== ENDING $SCRIPT_NAME ===================="
