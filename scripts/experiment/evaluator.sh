@@ -24,8 +24,10 @@ SUBJECT_PROJ_NAME="$(toml_get "$EXP_CONFIG_PATH" "source_project_name")"
 ENRG_BRG_INTERVAL="$(toml_get "$EXP_CONFIG_PATH" "enrg_brg_interval")"
 EXPERIMENT_ID="$(toml_get "$EXP_CONFIG_PATH" "id")"
 STDOUT_FILE_TYPE="$(toml_get "$EXP_CONFIG_PATH" "stdout_file_type")"
+STDERR_FILE_TYPE="$(toml_get "$EXP_CONFIG_PATH" "stderr_file_type")"
 REPEAT_VARIANT="$(toml_get "$EXP_CONFIG_PATH" "repeat_variant")"
 REPEAT_EVALUATION="$(toml_get "$EXP_CONFIG_PATH" "repeat_evaluation")"
+PAUSE="$(toml_get "$EXP_CONFIG_PATH" "pause_between_variants")"
 
 # BUILD EXPERIMENT DIRECTORY
 EXPERIMENT_DIR="$OUT_DIR/experiments/$EXPERIMENT_ID"
@@ -35,6 +37,7 @@ EXP_EX_CMD_DIR="$EXPERIMENT_DIR/execution_commands"
 EXP_ENERGY_DIR="$EXPERIMENT_DIR/energy"
 EXP_PLAN_DIR="$EXPERIMENT_DIR/plans"
 EXP_STDOUT_DIR="$EXPERIMENT_DIR/stdout"
+EXP_STDERR_DIR="$EXPERIMENT_DIR/stderr"
 
 out_msg_separator
 out_msg "==================== STARTING $SCRIPT_NAME ===================="
@@ -58,7 +61,8 @@ out_msg "Output Evaluation ~~ Complete: $RUN_COUNT/$NUM_VARIANT"
 for COMMAND_FILE in "$EXP_EX_CMD_DIR"/*; do
     VARIANT_ID="$(basename "$COMMAND_FILE" .sh)"
     STDOUT_FILE="$EXP_STDOUT_DIR/$VARIANT_ID.$STDOUT_FILE_TYPE"
-    "$COMMAND_FILE" > "$STDOUT_FILE"
+    STDERR_FILE="$EXP_STDERR_DIR/$VARIANT_ID.$STDERR_FILE_TYPE"
+    "$COMMAND_FILE" > "$STDOUT_FILE" 2> "$STDERR_FILE"
     RUN_COUNT=$((RUN_COUNT + 1))
     if [ $((RUN_COUNT % 100)) -eq 0 ]; then 
         out_msg "Output Evaluation ~~ Complete: $RUN_COUNT/$NUM_VARIANT"
@@ -96,6 +100,9 @@ for i in $(seq 1 "$REPEAT_EVALUATION"); do
     out_msg "Energy Evalutaion $CURRENT_EVAL of $REPEAT_EVALUATION ~~ ~~ ~~ ~~"
     for COMMAND_FILE in $(find "$EXP_EX_CMD_DIR" -maxdepth 1 -type f | shuf); do
         VARIANT_ID="$(basename "$COMMAND_FILE" .sh)"
+        # Pause for a cooldown between variants
+        sleep "$PAUSE"
+        # Execute
         "$ENRG_BRG_BIN" -o  "$CURRENT_EVAL_DIR/$VARIANT_ID.csv"\
             -i "$ENRG_BRG_INTERVAL"  \
             bash -c "$(declare -f run_repeated); run_repeated '$COMMAND_FILE' '$REPEAT_VARIANT' >/dev/null 2>&1"

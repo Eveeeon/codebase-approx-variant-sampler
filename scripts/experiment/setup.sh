@@ -43,6 +43,7 @@ EXP_EX_CMD_DIR="$EXPERIMENT_DIR/execution_commands"
 EXP_ENERGY_DIR="$EXPERIMENT_DIR/energy"
 EXP_PLAN_DIR="$EXPERIMENT_DIR/plans"
 EXP_STDOUT_DIR="$EXPERIMENT_DIR/stdout"
+EXP_STDERR_DIR="$EXPERIMENT_DIR/stderr"
 
 #########################################
 # CREATING OUT DIR
@@ -61,6 +62,7 @@ mkdir -p "$EXP_EX_CMD_DIR"
 mkdir -p "$EXP_ENERGY_DIR"
 mkdir -p "$EXP_PLAN_DIR"
 mkdir -p "$EXP_STDOUT_DIR"
+mkdir -p "$EXP_STDERR_DIR"
 
 #########################################
 # SETUP PYTHON VENV

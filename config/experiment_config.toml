@@ -10,6 +10,10 @@ source_file_type = "cpp"
 # "csv" | "txt" | "json"...
 # "" for none
 stdout_file_type = "txt"
+# File extension of file that sterr is written to
+# "csv" | "txt" | "json"...
+# "" for none
+stderr_file_type = "txt"
 # What type of floating point operations should be reduced to what other
 # "fp64" | "fp32" | "fp16"
 from_type = "fp64"
@@ -31,12 +35,17 @@ reduction_rates = [
 variants_per_rate = 20
 # Number of times each variant is repeated during energy evaluation
 repeat_variant = 20
+# Time in seconds to pause between energy measurements of variants
+pause_between_variants = 5
 # Number of times the entire experiment evaluation is repeated
 repeat_evaluation = 20
 # Random number seed
 base_seed = 12345
 
 [adapter]
+# A string of all copile flags to add to the subject compilation
+# "" for none
+compile_flags = ""
 # Value to pass into stdin
 # "" for none
 stdin = "3.0 4.0"

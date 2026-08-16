@@ -1,22 +1,36 @@
 # PIPELINE
 
+## Setup
+Does non of the experiment nor touches the source
+Creates directories
+Creates environments
+Compiles llvm passes
+Configures access
+
 ## Pre-Adapter
-input = source code
+Only cares about the subject
+Adapts and compiles subject ready for the experiment
+input = source code, compile flags
 output = single bitcode file
 
 ## Variant Generator
+Cares about the experiment setup of the subject
+Does the thinking about experiment setup, but not the compilation, execution or measurement
 input = single bitcode file
 output = directory of variant plan json files, a single csv file for of variant metrics
 
 ## Builder
+Only cares about compiling bitcode to binary
 input = single bitcode file, a directory of variant plan json files
 output = directory of variant binary files
 
 ## Post-Adapter
+Only cares about how the compiled code should be executed, the passed in args
 input = directory of variant binary files
 output = directory of binary file execution command files
 
 ## Evaluator
+Cares about executing binary and collecting the output and energy usage
 input = directory of variant binary files, directory of binary file execution command files
 output = directory of energy measurement files, directory of binary file output
 
