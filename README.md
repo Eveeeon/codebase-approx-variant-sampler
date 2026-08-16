@@ -3,7 +3,7 @@
 A sampling tool for generating and evaluating variants of a C/C++ application, where variants have reduced floating-point precision floating-point operations. The tool measures the energy/accuracy trade-off across variation strategies. Variants are randomly generated, however, they are evaluated by various metrics that inform strategy.
 
 # Overview
-
+```
 ("Subject" i.e. Source Code)
     |
     ▼
@@ -29,3 +29,4 @@ Runs the experiment, executing the binaries and capturing the raw output and ene
     ▼
 (Raw Subject Output)
 (Energy Measurements)
+```
