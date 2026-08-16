@@ -17,9 +17,10 @@ source "$START_SCRIPT"
 #########################################
 # PATHS
 PASSES_LIB="$ROOT/$(toml_get "$PROJ_CONFIG_PATH" "passes_library")"
+OUT_DIR="$ROOT/$(toml_get "$PROJ_CONFIG_PATH" "out")"
 
 # BUILD OUT DIRECTORY
-OUT_BC_DIR="$ROOT/$OUT_DIR/$(toml_get "$PROJ_CONFIG_PATH" "subject_bc_dir")"
+OUT_BC_DIR="$OUT_DIR/$(toml_get "$PROJ_CONFIG_PATH" "subject_bc_dir")"
 
 # PROJECT CONFIG
 COMPILER="$(toml_get "$PROJ_CONFIG_PATH" "llvm_compiler")"

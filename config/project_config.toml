@@ -6,7 +6,7 @@ source_file_type = "cpp"
 
 [paths]
 # Out
-out_dir = "out"
+out = "out"
 experiments_dir = "experiments"
 subject_bc_dir = "subject_bitcode"
 export_graph_dir = "graph_export"

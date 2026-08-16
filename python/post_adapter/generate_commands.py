@@ -52,7 +52,7 @@ def generate_run_commands(config: SubjectAdapterConfig):
     for file in binary_dir.iterdir():
         variant_id = file.name
         cmd = build_run_command(file, variant_id, config)
-        cmd_file_path = config.experiment_dir / "commands" / f"{variant_id}.sh"
+        cmd_file_path = config.experiment_dir / "execution_commands" / f"{variant_id}.sh"
         write_to_cmd_file(cmd_file_path, cmd)
 
 

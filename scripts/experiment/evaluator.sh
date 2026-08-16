@@ -17,6 +17,7 @@ source "$START_SCRIPT"
 #########################################
 # PATHS
 ENRG_BRG_BIN="$ROOT/$(toml_get "$PROJ_CONFIG_PATH" "enrg_brg_install_dir")/energibridge"
+OUT_DIR="$ROOT/$(toml_get "$PROJ_CONFIG_PATH" "out")"
 
 # EXPERIMENT CONFIG
 SUBJECT_PROJ_NAME="$(toml_get "$EXP_CONFIG_PATH" "source_project_name")"
@@ -41,38 +42,40 @@ out_msg "==================== STARTING $SCRIPT_NAME ===================="
 #########################################
 # EVALUATION FILES
 #########################################
-NUM_FILES="$(ls -1 "$EXP_EX_CMD_DIR" | wc -l)"
-out_msg "EVALUATING $NUM_FILES vartiants of $SUBJECT_PROJ_NAME for experiment $EXPERIMENT_ID"
+NUM_VARIANT="$(ls -1 "$EXP_EX_CMD_DIR" | wc -l)"
+out_msg "EVALUATING $NUM_VARIANT vartiants of $SUBJECT_PROJ_NAME for experiment $EXPERIMENT_ID"
 
 #########################################
 # EXECUTE AND MEASURE BINARY OUTPUT
 # OUTPUT
 #########################################
-out_msg "EVALUATING output of the variant output"
-out_msg "EXECUTING binary command strings directly"
+out_msg_separator
+out_msg "EVALUATING output of the variants"
+out_msg "EXECUTING binary command strings directly, sending stdout to file"
 
 RUN_COUNT=0
-out_msg "Evaluated: $RUN_COUNT/$NUM_FILES"
+out_msg "Output Evaluation ~~ Complete: $RUN_COUNT/$NUM_VARIANT"
 for COMMAND_FILE in "$EXP_EX_CMD_DIR"/*; do
-    VARIANT_ID="$(basename "$COMMAND_FILE" .)"
+    VARIANT_ID="$(basename "$COMMAND_FILE" .sh)"
     STDOUT_FILE="$EXP_STDOUT_DIR/$VARIANT_ID.$STDOUT_FILE_TYPE"
     "$COMMAND_FILE" > "$STDOUT_FILE"
     RUN_COUNT=$((RUN_COUNT + 1))
     if [ $((RUN_COUNT % 100)) -eq 0 ]; then 
-        out_msg "Completed: $RUN_COUNT/$NUM_FILES"
+        out_msg "Output Evaluation ~~ Complete: $RUN_COUNT/$NUM_VARIANT"
     fi
 done
-out_msg "Completed evaluation of output of $RUN_COUNT variants"
+out_msg "Output Evaluation ~~ Complete: $RUN_COUNT/$NUM_VARIANT"
 
 
 #########################################
 # EXECUTE AND MEASURE BINARY ENERGY
 # ENERGY
 #########################################
-out_msg "EVALUATING output of the variant output"
-out_msg "EXECUTING binary command strings directly"
+out_msg_separator
+out_msg "EVALUATING energy of the variant output"
+out_msg "EXECUTING binary command strings through EnergiBridge, without capturing stdout"
 
-run_repeated() {
+function run_repeated() {
     local COMMAND_FILE
     local REPEATS
 
@@ -83,32 +86,26 @@ run_repeated() {
     done
 }
 
-EVAL_RUN_COUNT=0
+out_msg "Energy Evaluation ~~ $REPEAT_EVALUATION repeat evaluations of $REPEAT_VARIANT executions of $NUM_VARIANT vartants"
+CURRENT_EVAL=1
 for i in $(seq 1 "$REPEAT_EVALUATION"); do
+    CURRENT_EVAL_DIR="$EXP_ENERGY_DIR/$CURRENT_EVAL"
+    mkdir -p "$CURRENT_EVAL_DIR"
+    
     VARIANT_RUN_COUNT=0
-    out_msg "Evaluated: $RUN_COUNT/$NUM_FILES"
+    out_msg "Energy Evalutaion $CURRENT_EVAL of $REPEAT_EVALUATION ~~ ~~ ~~ ~~"
     for COMMAND_FILE in $(find "$EXP_EX_CMD_DIR" -maxdepth 1 -type f | shuf); do
-        VARIANT_ID="$(basename "$COMMAND_FILE" .)"
-        "$ENRG_BRG_BIN" -o  "$EXP_ENERGY_DIR/$VARIANT_ID.csv"\
+        VARIANT_ID="$(basename "$COMMAND_FILE" .sh)"
+        "$ENRG_BRG_BIN" -o  "$CURRENT_EVAL_DIR/$VARIANT_ID.csv"\
             -i "$ENRG_BRG_INTERVAL"  \
-            - bash -c "$(declare -f run_repeated); run_repeated '$COMMAND_FILE' '$REPEAT_VARIANT'"
+            bash -c "$(declare -f run_repeated); run_repeated '$COMMAND_FILE' '$REPEAT_VARIANT' >/dev/null 2>&1"
         VARIANT_RUN_COUNT=$((VARIANT_RUN_COUNT + 1))
         if [ $((VARIANT_RUN_COUNT % 100)) -eq 0 ]; then 
-            out_msg "Completed: $RUN_COUNT/$NUM_FILES of variant in evaluation $EVAL_RUN_COUNT of $REPEAT_EVALUATION"
+            out_msg "Energy Evaluation $CURRENT_EVAL of $REPEAT_EVALUATION ~~ Variants Complete: $VARIANT_RUN_COUNT/$NUM_VARIANT"
         fi
-        out_msg "Completed: $RUN_COUNT/$NUM_FILES of variant in evaluation $EVAL_RUN_COUNT of $REPEAT_EVALUATION"
     done
-    EVAL_RUN_COUNT=$((EVAL_RUN_COUNT +1))
-    out_msg "Completed evaluation of output of $EVAL_RUN_COUNT variants"
+    out_msg "Energy Evaluation $CURRENT_EVAL of $REPEAT_EVALUATION ~~ Variants Complete: $VARIANT_RUN_COUNT/$NUM_VARIANT"
+    CURRENT_EVAL=$((CURRENT_EVAL +1))
 done
-
-for CMD_FILE in $(find "$COMMAND_DIR" -maxdepth 1 -type f | shuf); do
-    echo "$CMD_FILE"
-    VARIANT_ID="$(basename "$CMD_FILE" .)"
-    "$ENRG_BRG_BIN" -o  "$ENERGY_DIR/$VARIANT_ID.csv" -i "$ENRG_BRG_INTERVAL" "$CMD_FILE"
-done
-
-
-
 
 out_msg "==================== ENDING $SCRIPT_NAME ===================="

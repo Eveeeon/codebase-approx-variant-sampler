@@ -28,9 +28,9 @@ ENRG_BRG_BIN="$ROOT/$(toml_get "$PROJ_CONFIG_PATH" "enrg_brg_install_dir")/energ
 OUT_DIR="$ROOT/$(toml_get "$PROJ_CONFIG_PATH" "out")"
 
 # BUILD OUT DIRECTORY
-OUT_EXP_DIR="$ROOT/$OUT_DIR/$(toml_get "$PROJ_CONFIG_PATH" "experiments_dir")"
-OUT_BC_DIR="$ROOT/$OUT_DIR/$(toml_get "$PROJ_CONFIG_PATH" "subject_bc_dir")"
-OUT_GRAPH_DIR="$ROOT/$OUT_DIR/$(toml_get "$PROJ_CONFIG_PATH" "export_graph_dir")"
+OUT_EXP_DIR="$OUT_DIR/$(toml_get "$PROJ_CONFIG_PATH" "experiments_dir")"
+OUT_BC_DIR="$OUT_DIR/$(toml_get "$PROJ_CONFIG_PATH" "subject_bc_dir")"
+OUT_GRAPH_DIR="$OUT_DIR/$(toml_get "$PROJ_CONFIG_PATH" "export_graph_dir")"
 
 # EXPERIMENT CONFIG
 EXPERIMENT_ID="$(toml_get "$EXP_CONFIG_PATH" "id")"

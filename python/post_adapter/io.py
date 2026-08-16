@@ -26,7 +26,7 @@ def import_config(
     exp = experiment_config["experiment"]
     paths = project_config["paths"]
     adapter = experiment_config["adapter"]
-    experiment_dir = root_path / Path(paths["experiments"]) / Path(exp["id"])
+    experiment_dir = root_path / Path(paths["out"]) / Path(paths["experiments_dir"]) / Path(exp["id"])
 
     return SubjectAdapterConfig(
         experiment_dir=experiment_dir,
