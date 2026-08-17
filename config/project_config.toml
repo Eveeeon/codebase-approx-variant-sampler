@@ -2,7 +2,6 @@
 llvm_dir = "/usr/lib/llvm-18/lib/cmake/llvm"
 llvm_compiler = "clang"
 opt = "opt"
-source_file_type = "cpp"
 
 [paths]
 # Out
@@ -16,7 +15,7 @@ passes_build_dir = "cpp/build/passes"
 passes_library = "cpp/build/passes/FPApprox.so"
 # Python
 python_dir = "python"
-# Subject
+# Subject (name of the directory in which the subject source code lives)
 subject = "test_subject"
 
 [passes]
@@ -24,9 +23,9 @@ export_pass = "export-graph"
 transform_pass = "reduce-precision"
 
 [energibridge]
-enrg_brg_apple_aarch64 = "x86_64-unknown-linux-musl"
-enrg_brg_apple_darwin = "x86_64-unknown-linux-musl"
-enrg_brg_win_x86 = "x86_64-unknown-linux-musl"
+enrg_brg_apple_aarch64 = "aarch64-apple-darwin"
+enrg_brg_apple_darwin = "x86_64-apple-darwin"
+enrg_brg_win_x86 = "-x86_64-pc-windows-msvc"
 enrg_brg_linux_x86 = "x86_64-unknown-linux-musl"
 enrg_brg_base_url = "https://github.com/tdurieux/EnergiBridge/releases/download/"
 enrg_brg_version = "0.0.7"

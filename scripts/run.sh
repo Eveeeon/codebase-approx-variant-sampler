@@ -3,7 +3,6 @@ set -euo pipefail
 
 THIS_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
-"$THIS_DIR/install/install_energibridge.sh"
 "$THIS_DIR/experiment/setup.sh"
 "$THIS_DIR/experiment/pre_adapter.sh"
 "$THIS_DIR/experiment/variant_generator.sh"
