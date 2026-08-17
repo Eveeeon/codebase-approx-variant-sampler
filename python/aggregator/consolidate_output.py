@@ -71,7 +71,7 @@ def collect_energy(energy_dir: Path) -> pd.DataFrame:
     return aggregate_runs(all_evaluations)
 
 
-def consolidate_results(config: AggregatorConfig)
+def consolidate_results(config: AggregatorConfig):
     """Aggregates, collects, and writes the experiment results to a file
 
     Args:
