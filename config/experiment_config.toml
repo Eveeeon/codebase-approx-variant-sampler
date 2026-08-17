@@ -8,11 +8,9 @@ id = "test-01"
 source_file_type = "cpp"
 # File extension of file that stdout is written to
 # "csv" | "txt" | "json"...
-# "" for none
 stdout_file_type = "txt"
 # File extension of file that sterr is written to
 # "csv" | "txt" | "json"...
-# "" for none
 stderr_file_type = "txt"
 # What type of floating point operations should be reduced to what other
 # "fp64" | "fp32" | "fp16"
@@ -32,13 +30,13 @@ reduction_rates = [
     0.9
 ]
 # Number of randomly generated variants created for each reduction rate
-variants_per_rate = 20
+variants_per_rate = 5
 # Number of times each variant is repeated during energy evaluation
-repeat_variant = 20
+repeat_variant = 5
 # Time in seconds to pause between energy measurements of variants
-pause_between_variants = 5
+pause_between_variants = 3
 # Number of times the entire experiment evaluation is repeated
-repeat_evaluation = 20
+repeat_evaluation = 3
 # Random number seed
 base_seed = 12345
 
@@ -52,6 +50,15 @@ stdin = "3.0 4.0"
 # List of values to pass as args
 # [] for none
 args = []
+
+[aggregator]
+# The absolute file path to where output files are generated
+# "" defaults to stdout file path
+out_file_dir = ""
+# The file type extension of out files
+# "csv" | "txt" | "json"...
+# "" defaults to stdout_file_type
+out_file_type = ""
 
 [energibridge]
 # SET NAME OF PLATFORM HERE TO ONE OF THE OPTIONS BELOW

@@ -68,7 +68,6 @@ def main():
     parser.add_argument("log_file_path", help="Full path of the log file", type=Path)
     args = parser.parse_args()
     config = import_config(args.root_path, args.project_config, args.experiment_config)
-    config = import_config(args.root_path, args.project_config, args.experiment_config)
     set_logger(config.experiment_id, args.log_file_path)
     generate_run_commands(config)
 

@@ -5,7 +5,7 @@ A sampling tool for generating and evaluating variants of a C/C++ application, w
 
 # Overview
 
-The tool is composed of 5 components that sequentially run the experiment.
+The tool is composed of 6 components that sequentially run the experiment.
 
 <pre>
 ("Subject" i.e. Source Code)
@@ -43,9 +43,16 @@ Builds the execution commands for the experiment, providing any input to pass to
 <b>Evaluator</b>
 Runs the experiment, executing the binaries and capturing the raw output and energy consumption
     |
+    <sub>raw subject output</sub>
+    <sub>energy measurements</sub>
+    |
     ▼
-(Raw Subject Output)
-(Energy Measurements)
+<b>Aggregator</b>
+Aggregates the energy measurement averages and collects the output and metrics
+    |
+    |
+    ▼
+A single file with aggregated energy measurements, outputs, and metrics for each variant
 </pre>
 
 # Quckstart
@@ -93,15 +100,21 @@ Runs the experiment, executing the binaries and capturing the raw output and ene
 | `pause_between_variants` | Number of seconds to pause between variant evaluations for a cooldown window and reduce the affect of previous evaluations on subsecquent evaluations. |
 | `base_seed` | Random number generator seed used to select floating-point operations to be reduction. |
 | `enrg_brg_interval` | Time interval between EnergiBridge measurements. |
+| `out_file_dir `| The directory of file outputs when executing the subject, defaults to stdout |
+| `out_file_type `| The file type of file outputs when executing the subject, defaults to stdout |
 
-### 6. ONLY ONCE - Install third-party software (can be skipped if done previously in the current directory)
+### 6. Write the out file parser
+Because the aggregator needs to read from the subject out file, an out file parser must be provided, a function is already written and caled, it just needs to be filled in, the location of the file is:
+`python/aggregator/parse_subject_out.py`
+
+### 7. ONLY ONCE - Install third-party software (can be skipped if done previously in the current directory)
 Run `scripts/install.sh` from the root directory
 
-### 7. Execute the experiment
+### 8. Execute the experiment
 Run `scripts/run.sh` from the root directory, if prompted, enter sudo password during the setup to ensure the correct permissions are set.
 
-### 8. Get the results
-Get the results from the `out/eperiments/<experiment id>/` directory, see [out directory](#out-directory) for details.
+### 9. Get the results
+Get the results from the `experiments/<experiment id>/<experiment id>_aggregated_results.csv` file.
 
 # Required Installation
 
@@ -139,8 +152,10 @@ A Bash shell is required.
 ├── python/
 │   ├── post_adapter/
 │   └── variant_generator/
+│   └── aggregator/
 ├── scripts/
 │   ├── experiment/
+│   │   ├── aggregator.sh
 │   │   ├── builder.sh
 │   │   ├── evaluator.sh
 │   │   ├── post_adapter.sh
@@ -159,7 +174,6 @@ A Bash shell is required.
 ├── third_party/
 ```
 ## OUT Directory
-
 ```
 ├── out
 │   ├── experiments
@@ -171,6 +185,8 @@ A Bash shell is required.
 │   │       ├── plans/
 │   │       ├── stderr/
 │   │       └── stdout/
+│   │       ├── <experiment id>_metrics.csv
+│   │       ├── <experiment id>_aggregated_results.csv
 │   ├── graph_export/
 │   │   └── <subject name>.json
 │   └── subject_bitcode/
@@ -187,5 +203,7 @@ A Bash shell is required.
 | `experiments/<experiment id>/plans/` | Reduction plans generated for each variant, identified by ` variant id`. |
 | `experiments/<experiment id>/stderr/` | Stderr output from each variant execution (output is only evaluated once per variant), identified by ` variant id`. |
 | `experiments/<experiment id>/stdout/` | Stdout output from each variant execution (output is only evaluated once per variant), identified by ` variant id`. |
+| `experiments/<experiment id>/<experiment id>_metrics.csv` | A single metrics file with the computed metrics of all variants. |
+| `experiments/<experiment id>/<experiment id>_aggregated_results.csv` | A single file with aggregated energy measurements, metrics, and output by `variant_id`. |
 | `graph_export/` | Graph representations of the identified floating-point operations in the subject source code |
 | `subject_bitcode/` | LLVM bitcode generated from the subject source code. |

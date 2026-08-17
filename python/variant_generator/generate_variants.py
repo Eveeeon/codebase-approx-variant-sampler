@@ -100,6 +100,14 @@ def generate(raw_data: dict, config: ExperimentConfig):
     experiment_plans = experiment_path / "plans"
     experiment_plans.mkdir(parents=True, exist_ok=True)
 
+    logger.info("EXPORTING baseline plan")
+    export_plan(
+        [],
+        config.from_type,
+        config.to_type,
+        experiment_plans / f"{baseline}.json",
+    )
+
     # build all metrics into single list to export as one
     logger.info("COMPUTING metrics for the baseline code with no modifications")
     metrics = []
