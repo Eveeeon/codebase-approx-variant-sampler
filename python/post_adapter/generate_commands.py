@@ -37,7 +37,7 @@ def build_run_command(
     if config.stdin_val:
         cmd = f"echo '{config.stdin_val}' | {cmd}"
     if config.args:
-        cmd = f"{cmd} {args}"
+        cmd = f"{cmd} {" ".join(config.args)}"
     return cmd
 
 def generate_run_commands(config: SubjectAdapterConfig):

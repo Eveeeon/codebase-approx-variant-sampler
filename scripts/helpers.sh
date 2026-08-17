@@ -74,9 +74,8 @@ function toml_get() {
     CONFIG_PATH="$1"
     KEY="$2"
     KEY_REGEX="^\s*${KEY}\s*="
-    VAL_REGEX='s/.*=\s*"?([^"#]+)"?.*/\1/'
+    VAL_REGEX='s/[^=]*=\s*"?([^"#]+)"?\s*$/\1/'
     grep -E "$KEY_REGEX" "$CONFIG_PATH" \
         | head -1 \
-        | sed -E "$VAL_REGEX" \
-        | tr -d '[:space:]'
+        | sed -E "$VAL_REGEX"
 }

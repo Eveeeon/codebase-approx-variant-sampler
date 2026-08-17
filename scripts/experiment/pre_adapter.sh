@@ -30,6 +30,7 @@ COMPILER="$(toml_get "$PROJ_CONFIG_PATH" "llvm_compiler")"
 SUBJECT_PROJ_NAME="$(toml_get "$EXP_CONFIG_PATH" "source_project_name")"
 SRC_FILE_TYPE="$(toml_get "$EXP_CONFIG_PATH" "source_file_type")"
 COMPILE_FLAGS="$(toml_get "$EXP_CONFIG_PATH" "compile_flags")"
+COMPILE_INCLUDE_FLAGS="$(toml_get "$EXP_CONFIG_PATH" "include_flags")"
 
 # BUILD VARS FROM CONFIG
 SRC_FILE_MATCH="*.$SRC_FILE_TYPE"
@@ -51,12 +52,18 @@ TEMP_DIR="$OUT_DIR/temp"
 rm -rf "$TEMP_DIR"
 mkdir "$TEMP_DIR"
 
+out_msg "BUILDING include flags"
+INCLUDE_FLAGS=""
+for dir in $COMPILE_INCLUDE_FLAGS; do
+    INCLUDE_FLAGS="$INCLUDE_FLAGS -I $SUBJECT_DIR/$dir"
+done
+
 TEMP_FILES=()
 out_msg_separator
 out_msg "COMPILING each $SRC_FILE_TYPE to temporary bitcode files"
 while IFS= read -r -d '' src; do
     TEMP_FILE="$(mktemp "$TEMP_DIR/XXXXXX.bc")"
-    run_code "$COMPILER" -emit-llvm -O1 -c "$COMPILE_FLAGS" "$src" -o "$TEMP_FILE"
+    run_code "$COMPILER" -emit-llvm -O1 -c $COMPILE_FLAGS $INCLUDE_FLAGS "$src" -o "$TEMP_FILE"
     TEMP_FILES+=("$TEMP_FILE")
 done < <(find "$SUBJECT_DIR" -name "$SRC_FILE_MATCH" -print0 | sort -z)
 out_msg_separator

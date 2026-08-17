@@ -105,7 +105,7 @@ def generate(raw_data: dict, config: ExperimentConfig):
         [],
         config.from_type,
         config.to_type,
-        experiment_plans / f"{baseline}.json",
+        experiment_plans / f"baseline.json",
     )
 
     # build all metrics into single list to export as one

@@ -1,11 +1,11 @@
 [experiment]
 # Name of source code
-source_project_name = "test_project"
+source_project_name = "LULESH"
 # Experiment id
-id = "test-01"
+id = "LULESH-01"
 # The file extension of source files
 # cpp | c | ...
-source_file_type = "cpp"
+source_file_type = "cc"
 # File extension of file that stdout is written to
 # "csv" | "txt" | "json"...
 stdout_file_type = "txt"
@@ -41,15 +41,23 @@ repeat_evaluation = 3
 base_seed = 12345
 
 [adapter]
-# A string of all copile flags to add to the subject compilation
+# A string of all compile flags to add to the subject compilation
 # "" for none
-compile_flags = ""
+compile_flags = "-DUSE_MPI=0"
+# A string of all compillation include flags to add to the subject compilation
+# All directories should be relative to the root of the subject and not contain any spaces
+# Each directory should be separated by a space
+# "" for none
+include_flags = ""
 # Value to pass into stdin
 # "" for none
-stdin = "3.0 4.0"
+stdin = ""
 # List of values to pass as args
 # [] for none
-args = []
+args = ["-s", "20"]
+
+[builder]
+link_flags = "-lm -lstdc++"
 
 [aggregator]
 # The absolute file path to where output files are generated
