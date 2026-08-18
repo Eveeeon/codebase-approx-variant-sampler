@@ -41,14 +41,14 @@ base_seed = 12345
 execution_timeout = 21
 
 [adapter]
-# A string of all compile flags to add to the subject compilation
+# A string of all c compile flags to add to the subject compilation
 # "" for none
-compile_flags = "-DUSE_MPI=0"
-# A string of all compillation include flags to add to the subject compilation
-# All directories should be relative to the root of the subject and not contain any spaces
-# Each directory should be separated by a space
+c_compile_flags = "-DUSE_MPI=0"
+# A string of all cpp flags to add to the subject
+# e.g.
+# "-I /path/to/include -I /other/path" 
 # "" for none
-include_flags = ""
+cpp_flags = ""
 # Value to pass into stdin
 # "" for none
 stdin = ""
@@ -57,6 +57,8 @@ stdin = ""
 args = ["-s", "20"]
 
 [builder]
+# A string of all link flags to add to the build of the subject
+# "" for none
 link_flags = "-lm -lstdc++"
 
 [aggregator]
