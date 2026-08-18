@@ -28,6 +28,8 @@ STDERR_FILE_TYPE="$(toml_get "$EXP_CONFIG_PATH" "stderr_file_type")"
 REPEAT_VARIANT="$(toml_get "$EXP_CONFIG_PATH" "repeat_variant")"
 REPEAT_EVALUATION="$(toml_get "$EXP_CONFIG_PATH" "repeat_evaluation")"
 PAUSE="$(toml_get "$EXP_CONFIG_PATH" "pause_between_variants")"
+TIMEOUT="$(toml_get "$EXP_CONFIG_PATH" "execution_timeout")"
+
 
 # BUILD EXPERIMENT DIRECTORY
 EXPERIMENT_DIR="$OUT_DIR/experiments/$EXPERIMENT_ID"
@@ -55,16 +57,16 @@ out_msg "EVALUATING $NUM_VARIANT vartiants of $SUBJECT_PROJ_NAME for experiment 
 out_msg_separator
 out_msg "EVALUATING output of the variants"
 out_msg "EXECUTING binary command strings directly, sending stdout to file"
-
+out_msg "Timeout per execution: $TIMEOUT"
 RUN_COUNT=0
 out_msg "Output Evaluation ~~ Complete: $RUN_COUNT/$NUM_VARIANT"
 for COMMAND_FILE in "$EXP_EX_CMD_DIR"/*; do
     VARIANT_ID="$(basename "$COMMAND_FILE" .sh)"
     STDOUT_FILE="$EXP_STDOUT_DIR/$VARIANT_ID.$STDOUT_FILE_TYPE"
     STDERR_FILE="$EXP_STDERR_DIR/$VARIANT_ID.$STDERR_FILE_TYPE"
-    "$COMMAND_FILE" > "$STDOUT_FILE" 2> "$STDERR_FILE"
+    timeout "$TIMEOUT" "$COMMAND_FILE" > "$STDOUT_FILE" 2> "$STDERR_FILE" || true
     RUN_COUNT=$((RUN_COUNT + 1))
-    if [ $((RUN_COUNT % 100)) -eq 0 ]; then 
+    if [ $((RUN_COUNT % 25)) -eq 0 ]; then 
         out_msg "Output Evaluation ~~ Complete: $RUN_COUNT/$NUM_VARIANT"
     fi
 done
@@ -90,7 +92,10 @@ function run_repeated() {
     done
 }
 
-out_msg "Energy Evaluation ~~ $REPEAT_EVALUATION repeat evaluations of $REPEAT_VARIANT executions of $NUM_VARIANT vartants"
+TIMEOUT_FOR_REPEATS=$((TIMEOUT * REPEAT_VARIANT))
+
+out_msg "Energy Evaluation ~~ $REPEAT_EVALUATION repeat evaluations of $REPEAT_VARIANT executions of $NUM_VARIANT variants"
+
 CURRENT_EVAL=1
 for i in $(seq 1 "$REPEAT_EVALUATION"); do
     CURRENT_EVAL_DIR="$EXP_ENERGY_DIR/$CURRENT_EVAL"
@@ -103,11 +108,12 @@ for i in $(seq 1 "$REPEAT_EVALUATION"); do
         # Pause for a cooldown between variants
         sleep "$PAUSE"
         # Execute
-        "$ENRG_BRG_BIN" -o  "$CURRENT_EVAL_DIR/$VARIANT_ID.csv"\
-            -i "$ENRG_BRG_INTERVAL"  \
+        "$ENRG_BRG_BIN" -o  "$CURRENT_EVAL_DIR/$VARIANT_ID.csv" \
+            -i "$ENRG_BRG_INTERVAL" \
+            -m "$TIMEOUT_FOR_REPEATS" \
             bash -c "$(declare -f run_repeated); run_repeated '$COMMAND_FILE' '$REPEAT_VARIANT' >/dev/null 2>&1"
         VARIANT_RUN_COUNT=$((VARIANT_RUN_COUNT + 1))
-        if [ $((VARIANT_RUN_COUNT % 100)) -eq 0 ]; then 
+        if [ $((VARIANT_RUN_COUNT % 25)) -eq 0 ]; then 
             out_msg "Energy Evaluation $CURRENT_EVAL of $REPEAT_EVALUATION ~~ Variants Complete: $VARIANT_RUN_COUNT/$NUM_VARIANT"
         fi
     done

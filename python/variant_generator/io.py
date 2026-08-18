@@ -89,3 +89,16 @@ def export_metrics(metrics: list[VariantMetrics], path: Path):
 
         for metric in metrics:
             writer.writerow(asdict(metric))
+
+def export_graph(graph: nx.DiGraph, file: Path):
+    """Export the graph as an image
+
+    Args:
+        graph (nx.DiGraph): the graph
+        file (Path): full file path of the output file and .png extension
+    """
+    nx.draw(graph, with_labels=False)
+    plt.savefig(file, dpi=300, bbox_inches="tight")
+    plt.close()
+
+

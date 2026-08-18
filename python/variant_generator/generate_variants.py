@@ -8,6 +8,7 @@ import statistics as stats
 import argparse
 import tomllib
 from pathlib import Path
+import matplotlib.pyplot as plt
 
 # Local package imports
 from .model import ExperimentConfig, VariantMetrics
@@ -28,6 +29,7 @@ from .io import (
     import_graph_raw,
     export_plan,
     export_metrics,
+    export_graph,
 )
 
 
@@ -59,9 +61,23 @@ def generate(raw_data: dict, config: ExperimentConfig):
     logger = logging.getLogger("generate variants")
     logger.info("BUILDING graphs from imported raw data")
     experiment_id = config.experiment_id
+
+    # creating experiment out directory
+    logger.info("CREATING experiment out directory")
+    out_path = Path(config.out_dir)
+    experiment_path = out_path / experiment_id
+    experiment_path.mkdir(parents=True, exist_ok=True)
+    experiment_plans = experiment_path / "plans"
+    experiment_plans.mkdir(parents=True, exist_ok=True)
+
     # generate graph structure from the raw data
     call_graph = build_call_graph(raw_data)
     use_chain_graph = build_use_chain_graph(raw_data)
+
+    logger.info("EXPORTING graph images")
+    export_graph(call_graph, experiment_path / "call_graph.png")
+    export_graph(call_graph, experiment_path / "use_chain_graph.png")
+
     eligible_flops = get_eligible_flops(use_chain_graph, config.from_type)
      
     if not eligible_flops:
@@ -91,14 +107,6 @@ def generate(raw_data: dict, config: ExperimentConfig):
         use_chain_graph,
         call_graph,
     )
-
-    # creating experiment out directory
-    logger.info("CREATING experiment out directory")
-    out_path = Path(config.out_dir)
-    experiment_path = out_path / experiment_id
-    experiment_path.mkdir(parents=True, exist_ok=True)
-    experiment_plans = experiment_path / "plans"
-    experiment_plans.mkdir(parents=True, exist_ok=True)
 
     logger.info("EXPORTING baseline plan")
     export_plan(

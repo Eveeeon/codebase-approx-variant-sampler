@@ -2,7 +2,7 @@
 # Name of source code
 source_project_name = "LULESH"
 # Experiment id
-id = "LULESH-01"
+id = "LULESH-03"
 # The file extension of source files
 # cpp | c | ...
 source_file_type = "cc"
@@ -21,24 +21,24 @@ to_type = "fp32"
 # 0.1 means ~10% of eligible floating point operations will be reduced
 reduction_rates = [
     0.1,
-    0.2,
-    0.4,
-    0.5,
+    0.3,
     0.6,
-    0.7,
-    0.8,
     0.9
 ]
 # Number of randomly generated variants created for each reduction rate
-variants_per_rate = 5
+variants_per_rate = 15
 # Number of times each variant is repeated during energy evaluation
-repeat_variant = 5
+repeat_variant = 1
 # Time in seconds to pause between energy measurements of variants
-pause_between_variants = 3
+pause_between_variants = 5
 # Number of times the entire experiment evaluation is repeated
-repeat_evaluation = 3
+repeat_evaluation = 30
 # Random number seed
 base_seed = 12345
+# Time in seconds to kill execution to prevent infinite loops
+# Timeout is for a single evaluation
+# The timeout for energy evaluation is multiplied by the number of variant repeats
+execution_timeout = 21
 
 [adapter]
 # A string of all compile flags to add to the subject compilation
