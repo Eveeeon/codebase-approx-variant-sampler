@@ -21,6 +21,5 @@ aggregator = "aggregator.consolidate_output:main"
 packages = [
     "variant_generator",
     "post_adapter",
-    "aggregator",
-    "matplotlib"
+    "aggregator"
 ]

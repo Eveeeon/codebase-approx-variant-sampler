@@ -8,7 +8,6 @@ import statistics as stats
 import argparse
 import tomllib
 from pathlib import Path
-import matplotlib.pyplot as plt
 
 # Local package imports
 from .model import ExperimentConfig, VariantMetrics
@@ -29,7 +28,7 @@ from .io import (
     import_graph_raw,
     export_plan,
     export_metrics,
-    export_graph,
+    export_graph_gexf,
 )
 
 
@@ -74,9 +73,9 @@ def generate(raw_data: dict, config: ExperimentConfig):
     call_graph = build_call_graph(raw_data)
     use_chain_graph = build_use_chain_graph(raw_data)
 
-    logger.info("EXPORTING graph images")
-    export_graph(call_graph, experiment_path / "call_graph.png")
-    export_graph(call_graph, experiment_path / "use_chain_graph.png")
+    logger.info("EXPORTING built graphs")
+    export_graph_gexf(call_graph, experiment_path, "function_call_graph")
+    export_graph_gexf(use_chain_graph, experiment_path, "use_chain_graph")
 
     eligible_flops = get_eligible_flops(use_chain_graph, config.from_type)
      
@@ -87,8 +86,8 @@ def generate(raw_data: dict, config: ExperimentConfig):
         f"Total eligible {config.from_type} floating point operations: {len(eligible_flops)}"
     )
 
-    logger.info(f"Total graph nodes = {use_chain_graph.number_of_nodes()}")
-    logger.info(f"Total graph edges = {use_chain_graph.number_of_edges()}")
+    logger.info(f"Total use-chain graph nodes = {use_chain_graph.number_of_nodes()}")
+    logger.info(f"Total use-chain graph edges = {use_chain_graph.number_of_edges()}")
 
     # get the depths and metrics for all eligible floating point operations
     logger.info("COMPUTING use chain graph node depths")

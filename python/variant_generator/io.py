@@ -4,6 +4,7 @@ from pathlib import Path
 import tomllib
 from dataclasses import asdict, fields
 import logging
+import networkx as nx
 
 # Local package imports
 from .model import (
@@ -90,15 +91,17 @@ def export_metrics(metrics: list[VariantMetrics], path: Path):
         for metric in metrics:
             writer.writerow(asdict(metric))
 
-def export_graph(graph: nx.DiGraph, file: Path):
-    """Export the graph as an image
+def export_graph_gexf(graph: nx.DiGraph, path: Path, file_name: str):
+    """Export the graph as a gexf file
 
     Args:
         graph (nx.DiGraph): the graph
-        file (Path): full file path of the output file and .png extension
+        path (Path): the directory to save the file name
+        file_name *(str): the file name excluding path and extension
     """
-    nx.draw(graph, with_labels=False)
-    plt.savefig(file, dpi=300, bbox_inches="tight")
-    plt.close()
+    stripped_graph = nx.DiGraph()
+    stripped_graph.add_nodes_from(graph.nodes())
+    stripped_graph.add_edges_from(graph.edges())
 
+    nx.write_gexf(stripped_graph, path / f"{file_name}.gexf")
 
