@@ -86,8 +86,9 @@ A single file with aggregated energy measurements, outputs, and metrics for each
 | `variants_per_rate` | Number of variants to generate for each reduction rate. |
 | `repeat_variant` | Number of times each variant is repeated within a single measurement to reduce measurement noise. |
 | `repeat_evaluation` | Number of times the full energy evaluation is repeated across all variants to improve robustness and reduce measurement variation. <br/> <sub> <i>  Each evaluation processes the variants in a different random order to reduce sequencing bias.</i> </sub>  |
-| `compile_flags` | String containing all compiler flags for the subject source code compilation to bitcode. |
-| `include_flags` | String containing all include flags for the subject source code compilation to bitcode. |
+| `c_compile_flags` | String containing all c compiler flags for the subject source code. |
+| `cpp_flags` | String containing all cpp flags for the subject source code. |
+| `link_flags` | String containing all link flags for the subject build. |
 | `stdin` | String containing all stdin values passed to the subject source code during execution. |
 | `args` | List of arguments passed to the subject source code during execution. |
 | `enrg_brg_platform` | OS/hardware platform on which the experiment is running. Used to determine which version of EnergiBridge to install. |
