@@ -1,11 +1,11 @@
 [experiment]
 # Name of source code
-source_project_name = "test_project"
+source_project_name = "LULESH"
 # Experiment id
-id = "test-01"
+id = "LULESH-04"
 # The file extension of source files
 # cpp | c | ...
-source_file_type = "cpp"
+source_file_type = "cc"
 # File extension of file that stdout is written to
 # "csv" | "txt" | "json"...
 stdout_file_type = "txt"
@@ -21,16 +21,14 @@ to_type = "fp32"
 # 0.1 means ~10% of eligible floating point operations will be reduced
 # must be between 0 and 1
 reduction_rates = [
-    0.1,
     0.3,
-    0.5,
-    0.7,
+    0.6,
     0.9
 ]
 # Number of randomly generated variants created for each reduction rate
 variants_per_rate = 15
 # Number of times each variant is repeated during energy evaluation
-repeat_variant = 15
+repeat_variant = 1
 # Time in seconds to pause between energy measurements of variants
 pause_between_variants = 5
 # Number of times the entire experiment evaluation is repeated
@@ -40,7 +38,7 @@ base_seed = 12345
 # Time in seconds to kill execution to prevent infinite loops
 # Timeout is for a single evaluation
 # The timeout for energy evaluation is multiplied by the number of variant repeats
-execution_timeout = 10
+execution_timeout = 21
 
 [adapter]
 # A string of all c compile flags to add to the subject compilation
@@ -53,15 +51,15 @@ c_compile_flags = "-DUSE_MPI=0"
 cpp_flags = ""
 # Value to pass into stdin
 # "" for none
-stdin = "2.0 3.0"
+stdin = ""
 # List of values to pass as args
 # [] for none
-args = []
+args = ["-s", "20"]
 
 [builder]
 # A string of all link flags to add to the build of the subject
 # "" for none
-link_flags = "-lm -lstdc++"
+link_flags = ""
 
 [aggregator]
 # The absolute file path to where output files are generated
