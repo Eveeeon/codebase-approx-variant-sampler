@@ -19,21 +19,18 @@ from_type = "fp64"
 to_type = "fp32"
 # List of reduction rates for the experiment to run
 # 0.1 means ~10% of eligible floating point operations will be reduced
+# must be between 0 and 1
 reduction_rates = [
     0.1,
-    0.2,
     0.3,
-    0.4,
     0.5,
-    0.6,
     0.7,
-    0,8,
     0.9
 ]
 # Number of randomly generated variants created for each reduction rate
 variants_per_rate = 15
 # Number of times each variant is repeated during energy evaluation
-repeat_variant = 20
+repeat_variant = 15
 # Time in seconds to pause between energy measurements of variants
 pause_between_variants = 5
 # Number of times the entire experiment evaluation is repeated
@@ -43,7 +40,7 @@ base_seed = 12345
 # Time in seconds to kill execution to prevent infinite loops
 # Timeout is for a single evaluation
 # The timeout for energy evaluation is multiplied by the number of variant repeats
-execution_timeout = 20
+execution_timeout = 10
 
 [adapter]
 # A string of all c compile flags to add to the subject compilation
