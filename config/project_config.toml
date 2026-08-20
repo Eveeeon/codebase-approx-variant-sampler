@@ -16,7 +16,7 @@ passes_library = "cpp/build/passes/FPApprox.so"
 # Python
 python_dir = "python"
 # Path of the root of the test subject, relative to the root of this project
-subject = "subject/LULESH"
+subject = "test_subject"
 
 [passes]
 export_pass = "export-graph"
