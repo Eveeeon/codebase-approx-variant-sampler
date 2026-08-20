@@ -6,3 +6,4 @@ logs/
 third_party/
 subject/
 .venv/
+.ipynb_checkpoints/
