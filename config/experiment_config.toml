@@ -59,7 +59,7 @@ args = ["-s", "20"]
 [builder]
 # A string of all link flags to add to the build of the subject
 # "" for none
-link_flags = ""
+link_flags = "-lm -lstdc++"
 
 [aggregator]
 # The absolute file path to where output files are generated

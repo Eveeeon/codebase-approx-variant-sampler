@@ -17,24 +17,49 @@ def parse_test_subject_out(file: Path) -> dict:
 ###############################################
 # EDIT FUNCTION BELOW TO HANDLE SUBJECT OUT
 ###############################################
+
+
 def parse_subject_out(file: Path) -> dict:
-    """Parser for a single file of the subject out
+    """Parser for a single file of the subject out."""
 
-    Args:
-        file (Path): path of a single out file
-
-    Returns:
-        dict: the out data
-    """
-    # REPLACE CODE HERE    
     with open(file) as f:
         text = f.read()
-    result = {
-        "final_origin_energy": float(re.search(r"Final Origin Energy\s*=\s*([0-9eE+\-\.]+)", text)),
-        "max_abs_diff": float(re.search(r"MaxAbsDiff\s*=\s*([0-9eE+\-\.]+)", text)),
-        "total_abs_diff": float(re.search(r"TotalAbsDiff\s*=\s*([0-9eE+\-\.]+)", text)),
-        "max_rel_diff": float(re.search(r"MaxRelDiff\s*=\s*([0-9eE+\-\.]+)", text)),
-        "iteration_count": float(re.search(r"Iteration count\s*=\s*([0-9]+)", text)),
-        "fom": float(re.search(r"FOM\s*=\s*([0-9eE+\-\.]+)", text)),
+
+    def extract(pattern: str, field: str, default=None):
+        match = re.search(pattern, text)
+        if match is None:
+            print(f"Warning: {field} not found in {file}")
+            return default
+
+        try:
+            return float(match.group(1))
+        except ValueError:
+            print(f"Warning: invalid value for {field} in {file}: {match.group(1)!r}")
+            return default
+
+    return {
+        "final_origin_energy": extract(
+            r"Final Origin Energy\s*=\s*([0-9eE+\-.]+)",
+            "final_origin_energy",
+        ),
+        "max_abs_diff": extract(
+            r"MaxAbsDiff\s*=\s*([0-9eE+\-.]+)",
+            "max_abs_diff",
+        ),
+        "total_abs_diff": extract(
+            r"TotalAbsDiff\s*=\s*([0-9eE+\-.]+)",
+            "total_abs_diff",
+        ),
+        "max_rel_diff": extract(
+            r"MaxRelDiff\s*=\s*([0-9eE+\-.]+)",
+            "max_rel_diff",
+        ),
+        "iteration_count": extract(
+            r"Iteration count\s*=\s*([0-9]+)",
+            "iteration_count",
+        ),
+        "fom": extract(
+            r"FOM\s*=\s*([0-9eE+\-.]+)",
+            "fom",
+        ),
     }
-    return result

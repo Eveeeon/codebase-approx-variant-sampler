@@ -29,7 +29,7 @@ TRANSFORM_PASS="$(toml_get "$PROJ_CONFIG_PATH" "transform_pass")"
 # EXPERIMENT CONFIG
 SUBJECT_PROJ_NAME="$(toml_get "$EXP_CONFIG_PATH" "source_project_name")"
 EXPERIMENT_ID="$(toml_get "$EXP_CONFIG_PATH" "id")"
-LINK_FLAGS="$(toml_get "$EXP_CONFIG_PATH" "link_flags")"
+read -r -a LINK_FLAGS <<< "$(toml_get "$EXP_CONFIG_PATH" "link_flags")"
 
 # BUILD VARS FROM CONFIG
 SUBJECT_BC="$OUT_BC_DIR/$SUBJECT_PROJ_NAME.bc"
@@ -59,7 +59,7 @@ for PLAN_FILE in "$EXP_PLAN_DIR"/*.json; do
     VARIANT_BC="$EXP_BITCODE_DIR/$VARIANT_ID.bc"
     VARIANT_BIN="$EXP_BINARY_DIR/$VARIANT_ID"
     run_code opt -load-pass-plugin "$PASSES_LIB" -passes="${TRANSFORM_PASS},instcombine" --plan-file-path="$PLAN_FILE" -o "$VARIANT_BC" "$SUBJECT_BC"
-    if "$COMPILER" "$VARIANT_BC" -o "$VARIANT_BIN" $LINK_FLAGS 2>&1; then
+    if "$COMPILER" "$VARIANT_BC" -o "$VARIANT_BIN" "${LINK_FLAGS[@]}" 2>&1; then
         COMP_PASS_COUNT=$((COMP_PASS_COUNT + 1))
     else
         COMP_FAIL_COUNT=$((COMP_FAIL_COUNT + 1))
